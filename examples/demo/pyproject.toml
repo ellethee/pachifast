@@ -1,0 +1,13 @@
+[project]
+name = "pachifast-demo"
+version = "0.1.0"
+description = "Self-contained demo backend for pachifast"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = ["pachifast"]
+
+# Inside the repository the demo runs against the local sources. To use a published release
+# instead, delete this section: pachifast is then installed from PyPI.
+[tool.uv.sources]
+pachifast = { path = "../..", editable = true }

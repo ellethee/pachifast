@@ -1,0 +1,52 @@
+# Builds the documentation site (MkDocs) and publishes it to GitHub Pages.
+#
+# Runs on pushes to main that touch the documentation, and by hand. Pull requests only build the site (a check, with
+# --strict: a broken link or a missing page fails). One-time setup in the repository: Settings > Pages > Build and
+# deployment > Source: "GitHub Actions". The site address is https://<owner>.github.io/<repository>/ (or your custom
+# domain).
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths: ["docs/**", "mkdocs.yml", "CHANGELOG.md", "pyproject.toml", ".github/workflows/docs.yml"]
+  pull_request:
+    paths: ["docs/**", "mkdocs.yml", "CHANGELOG.md", ".github/workflows/docs.yml"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+      - id: pages
+        uses: actions/configure-pages@v6
+      - name: Build the site
+        env:
+          DOCS_SITE_URL: ${{ steps.pages.outputs.base_url }}
+        run: uv run --group docs mkdocs build --strict
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

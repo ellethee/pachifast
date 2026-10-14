@@ -1,0 +1,114 @@
+{
+  "access.permissions_missing": [
+    "permissions"
+  ],
+  "access.staff_required": [],
+  "access.superuser_required": [],
+  "admin.action_not_found": [
+    "name"
+  ],
+  "admin.integrity_error": [],
+  "admin.model_not_found": [
+    "app",
+    "model"
+  ],
+  "admin.object_not_found": [
+    "pk"
+  ],
+  "admin.text.action.delete_selected": [],
+  "admin.text.deleted_selected": [
+    "count"
+  ],
+  "api.invalid_order_by": [
+    "field"
+  ],
+  "auth.invalid_credentials": [],
+  "auth.not_authenticated": [],
+  "auth.password_incorrect": [],
+  "auth.password_too_short": [
+    "min_length"
+  ],
+  "auth.password_unchanged": [],
+  "auth.rate_limited": [],
+  "auth.refresh_token_invalid": [],
+  "auth.refresh_token_revoked": [],
+  "auth.refresh_user_invalid": [],
+  "auth.registration_disabled": [],
+  "auth.token_invalid": [],
+  "auth.token_no_subject": [],
+  "auth.token_revoked": [],
+  "auth.token_wrong_type": [],
+  "auth.too_many_attempts": [],
+  "auth.username_taken": [],
+  "db.conflict": [],
+  "db.invalid_value": [],
+  "db.not_configured": [],
+  "group.not_found": [],
+  "health.not_ready": [],
+  "mfa.already_enabled": [],
+  "mfa.challenge_not_found": [],
+  "mfa.code_invalid": [],
+  "mfa.disabled": [],
+  "mfa.email_code_invalid": [],
+  "mfa.no_email": [],
+  "mfa.no_email_setup": [],
+  "mfa.no_sms_setup": [],
+  "mfa.no_totp_setup": [],
+  "mfa.not_active": [],
+  "mfa.not_configured": [],
+  "mfa.password_incorrect": [],
+  "mfa.sms_code_invalid": [],
+  "mfa.token_invalid": [],
+  "mfa.too_many_attempts": [],
+  "mfa.totp_invalid": [],
+  "permission.not_found": [],
+  "settings.appearance.accent.label": [],
+  "settings.appearance.accent.options.amber": [],
+  "settings.appearance.accent.options.coral": [],
+  "settings.appearance.accent.options.indigo": [],
+  "settings.appearance.accent.options.teal": [],
+  "settings.appearance.accent.options.violet": [],
+  "settings.appearance.density.label": [],
+  "settings.appearance.density.options.comf": [],
+  "settings.appearance.density.options.compact": [],
+  "settings.appearance.font_scale.label": [],
+  "settings.appearance.font_scale.options.lg": [],
+  "settings.appearance.font_scale.options.md": [],
+  "settings.appearance.font_scale.options.sm": [],
+  "settings.appearance.reduce_motion.label": [],
+  "settings.appearance.theme.label": [],
+  "settings.appearance.theme.options.auto": [],
+  "settings.appearance.theme.options.dark": [],
+  "settings.appearance.theme.options.light": [],
+  "settings.appearance.title": [],
+  "settings.audit.disable_activity_log.label": [],
+  "settings.audit.title": [],
+  "settings.preferences.date_format.label": [],
+  "settings.preferences.date_format.options.auto": [],
+  "settings.preferences.date_format.options.dmy": [],
+  "settings.preferences.date_format.options.mdy": [],
+  "settings.preferences.date_format.options.ymd": [],
+  "settings.preferences.locale.label": [],
+  "settings.preferences.table_page_size.label": [],
+  "settings.preferences.timezone.label": [],
+  "settings.preferences.title": [],
+  "user.cannot_delete_self": [],
+  "user.cannot_demote_self": [],
+  "user.disabled": [],
+  "user.email_exists": [],
+  "user.inactive": [],
+  "user.not_found": [],
+  "user.profile_not_configured": [],
+  "user.settings_category_invalid": [
+    "category"
+  ],
+  "user.settings_key_invalid": [
+    "category",
+    "key"
+  ],
+  "user.settings_value_invalid": [
+    "category",
+    "key"
+  ],
+  "user.username_or_email_exists": []
+}

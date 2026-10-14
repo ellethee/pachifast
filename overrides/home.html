@@ -1,0 +1,43 @@
+{% extends "main.html" %}
+{% block tabs %}{{ super() }}{% endblock %}
+{% block content %}
+<section class="pf-hero">
+  <img class="pf-hero-logo" src="{{ 'assets/logo.svg' | url }}" alt="pachifast" width="180" height="180">
+  <h1>pachifast</h1>
+  <p class="pf-version">version {{ config.extra.version }}</p>
+  <p>Modular FastAPI services with a scaffolding CLI, built-in authentication, multi-database migrations
+     and a uniform API contract you can share with your frontend.</p>
+  <div class="pf-badges"><span>FastAPI</span><span>SQLModel + Alembic</span><span>JWT + RBAC + MFA</span><span>i18n codes</span><span>MIT</span></div>
+  <div class="pf-actions">
+    <a class="pf-btn pf-btn--primary" href="getting-started/">Get started</a>
+    <a class="pf-btn pf-btn--ghost" href="guides/modules/">How modules work</a>
+    <a class="pf-btn pf-btn--ghost" href="reference/cli/">CLI reference</a>
+  </div>
+  <div class="pf-code"><span class="c"># a running API with users, permissions and migrations in four commands</span><br>
+<span class="p">$ </span>pachifast new project demo &amp;&amp; cd demo<br>
+<span class="p">$ </span>pachifast new app hello<br>
+<span class="p">$ </span>pachifast init<br>
+<span class="p">$ </span>pachifast dev</div>
+</section>
+<div class="pf-section">
+  <h2>Guides</h2>
+  <div class="pf-grid">
+    <a class="pf-card" href="getting-started/"><strong>Getting started</strong><span>Install, create a project, log in, first requests.</span></a>
+    <a class="pf-card" href="guides/modules/"><strong>Modules</strong><span>AppModule, routers, settings, hooks and migration targets.</span></a>
+    <a class="pf-card" href="guides/authentication/"><strong>Authentication</strong><span>Tokens, users, groups, permissions, MFA and user settings.</span></a>
+    <a class="pf-card" href="guides/routing-and-responses/"><strong>Routing and responses</strong><span>The response envelope, pagination and OpenAPI.</span></a>
+    <a class="pf-card" href="guides/errors-and-i18n/"><strong>Errors and i18n</strong><span>Stable codes, catalogs and the vue-i18n export.</span></a>
+    <a class="pf-card" href="guides/events/"><strong>Events</strong><span>WebSocket with one-time tickets and the activity log.</span></a>
+    <a class="pf-card" href="guides/database-and-migrations/"><strong>Database and migrations</strong><span>Targets, Alembic and table naming.</span></a>
+    <a class="pf-card" href="guides/deployment/"><strong>Deployment</strong><span>Docker, CI/CD pipelines and running in production.</span></a>
+    <a class="pf-card" href="guides/frontend-integration/"><strong>Frontend integration</strong><span>The contract between this backend and a Vue frontend.</span></a>
+  </div>
+  <h2>Reference</h2>
+  <div class="pf-grid">
+    <a class="pf-card" href="reference/cli/"><strong>CLI</strong><span>Every command and option.</span></a>
+    <a class="pf-card" href="reference/settings/"><strong>Settings</strong><span>Every key of <code>pachifast.yaml</code>.</span></a>
+    <a class="pf-card" href="reference/error-codes/"><strong>Message codes</strong><span>Every code with its English and Italian text.</span></a>
+    <a class="pf-card" href="changelog/"><strong>Changelog</strong><span>What changed in each release.</span></a>
+  </div>
+</div>
+{% endblock %}

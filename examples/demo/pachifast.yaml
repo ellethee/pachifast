@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=./pachifast.schema.json
+# Optional project configuration. Environment variables (PACHIFAST_*, also from .env) take
+# precedence over the values in this file.
+
+host: 127.0.0.1
+port: 8000

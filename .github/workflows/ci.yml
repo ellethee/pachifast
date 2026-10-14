@@ -1,0 +1,66 @@
+# Lint and tests on every push to main and on pull requests (GitHub Actions).
+#
+# `test` runs the whole suite on Python 3.11 to 3.14 against a PostgreSQL service; `lowest-direct` runs it with the
+# oldest allowed dependencies.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13", "3.14"]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PACHIFAST_TEST_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+      - name: Install the dependencies
+        run: uv sync --frozen --python ${{ matrix.python }}
+      - name: Lint
+        run: |
+          uv run --no-sync ruff check .
+          uv run --no-sync ruff format --check .
+      - name: Tests
+        if: ${{ matrix.python != '3.13' }}
+        run: uv run --no-sync pytest -q
+      - name: Tests with coverage
+        if: ${{ matrix.python == '3.13' }}
+        run: uv run --no-sync pytest -q --cov --cov-fail-under=85
+
+  lowest-direct:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+      - name: Install the oldest allowed dependencies
+        run: uv sync --resolution lowest-direct --python 3.11
+      - name: Tests
+        run: >-
+          uv run --no-sync pytest -q
+          --deselect tests/test_config_schema.py::test_generated_reference_pages_are_up_to_date
