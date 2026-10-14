@@ -141,7 +141,7 @@
     "description": {
       "default": "",
       "type": "string",
-      "description": "Description of the project (taken from pyproject.toml when empty)."
+      "description": "Description of the project, reported by /api/health/ (empty: no description)."
     },
     "disable_core_routers": {
       "description": "Routers of the core not to mount (e.g. permissions).",
@@ -366,7 +366,7 @@
     "project_name": {
       "default": "",
       "type": "string",
-      "description": "Name of the project (taken from pyproject.toml when empty)."
+      "description": "Name of the project, reported by /api/health/ (empty: the application title, default PachiFast)."
     },
     "refresh_reuse_grace_seconds": {
       "default": 10,
@@ -438,7 +438,7 @@
     "version": {
       "default": "",
       "type": "string",
-      "description": "Version of the project (taken from pyproject.toml when empty)."
+      "description": "Version of the project, reported by /api/health/ (empty: the application version, default 0.1.0)."
     },
     "wrap_auth_token_response": {
       "default": false,

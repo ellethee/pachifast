@@ -34,6 +34,17 @@ def test_health_with_reachable_database(monkeypatch: pytest.MonkeyPatch, tmp_pat
     data = _health(monkeypatch, f"sqlite+aiosqlite:///{tmp_path / 'ok.sqlite3'}")
     assert data["database"] is True
     assert set(data) == {"name", "version", "description", "database"}
+    assert data["name"] and data["version"]
+
+
+def test_health_reports_the_configured_name_version_and_description(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("PACHIFAST_PROJECT_NAME", "Billing")
+    monkeypatch.setenv("PACHIFAST_VERSION", "2.3.4")
+    monkeypatch.setenv("PACHIFAST_DESCRIPTION", "Billing API")
+    data = _health(monkeypatch, f"sqlite+aiosqlite:///{tmp_path / 'ok.sqlite3'}")
+    assert (data["name"], data["version"], data["description"]) == ("Billing", "2.3.4", "Billing API")
 
 
 def test_health_with_unreachable_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

@@ -185,8 +185,12 @@ def test_purge_activity_log_deletes_what_is_older_than_the_retention(tmp_path: P
         return list(rows)
 
     asyncio.run(seed())
-    with pytest.raises(ValueError, match="how many days"):
+    with pytest.raises(ValueError, match="No retention is configured.*--days"):
         purge_activity_log(base_dir=str(tmp_path))
+    with (tmp_path / ".env").open("a") as env_file:
+        env_file.write("PACHIFAST_ACTIVITY_LOG_RETENTION_DAYS=30\n")
+    assert purge_activity_log(base_dir=str(tmp_path), dry_run=True) == (30, 2)
+    (tmp_path / ".env").write_text((tmp_path / ".env").read_text().replace("RETENTION_DAYS=30", "RETENTION_DAYS=0"))
     assert purge_activity_log(base_dir=str(tmp_path), days=30, dry_run=True) == (30, 2)
     assert asyncio.run(paths()) == ["/api/1", "/api/40", "/api/100"]
     assert purge_activity_log(base_dir=str(tmp_path), days=30) == (30, 2)

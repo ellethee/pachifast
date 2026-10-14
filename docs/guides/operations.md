@@ -72,7 +72,7 @@ curl http://localhost:8000/api/health/
 }
 ```
 
-`name`, `version` and `description` come from the `project_name`, `version` and `description` settings. `database` is `false` when `AUTH_DATABASE_URL` is missing or the database is unreachable; the endpoint itself still answers `200`, so an orchestrator that must react to a failing database should check the `database` field. Use `GET /api/health/` as the container health check or load-balancer probe.
+`name`, `version` and `description` come from the `project_name`, `version` and `description` settings. When `project_name` or `version` is empty the endpoint reports the application title (`PachiFast`) and version (`0.1.0`) that the OpenAPI document shows; an empty `description` stays empty. Set them in `pachifast.yaml` or `.env` to see your own values. `database` is `false` when `AUTH_DATABASE_URL` is missing or the database is unreachable; the endpoint itself still answers `200`, so an orchestrator that must react to a failing database should check the `database` field. Use `GET /api/health/` as the container health check or load-balancer probe.
 
 ### `GET /api/health/live` and `GET /api/health/ready`
 
@@ -126,7 +126,7 @@ A server database (PostgreSQL) keeps a pool of connections **per process**: with
 
 ## Activity log retention
 
-The activity log only grows. `pachifast audit purge --days 90` deletes the rows older than 90 days (`--dry-run` only counts them); without `--days` it uses `activity_log_retention_days`. Run it from cron or a systemd timer:
+The activity log only grows. `pachifast audit purge --days 90` deletes the rows older than 90 days (`--dry-run` only counts them); without `--days` it uses the `activity_log_retention_days` setting, also with `--dry-run`. When that setting is `0` (the default: no retention configured) and you pass no `--days`, the command prints a message saying so and exits with status 1. Run it from cron or a systemd timer:
 
 ```bash
 0 3 * * *  cd /srv/myproject && pachifast audit purge --days 90

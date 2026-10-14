@@ -94,7 +94,7 @@ change in a separate override file merged after them, or in the project's locale
 
 | Argument / option | Description | Default |
 | --- | --- | --- |
-| `--dest-path` | Folder that receives one <language>.json per language. |  |
+| `--dest-path` | Folder that receives one <language>.json per language (required). |  |
 | `--base-dir` | Project root containing project_modules.py. | `.` |
 | `--namespace` | Wrap the messages in this dotted path, e.g. errors.codes. |  |
 | `--top-level` | With --namespace: codes whose first part is this stay at the top of the file, not under the namespace (repeatable; default: settings, permissions, groups). Pass an empty value to wrap everything. |  |

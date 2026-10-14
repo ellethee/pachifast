@@ -66,6 +66,8 @@ uv run pachifast dev
 
 Without `--no-interactive`, `new project` asks (in a terminal) for the `pyproject.toml` properties you did not pass as options. The full option list is in the [CLI reference](reference/cli.md).
 
+Do not `export PACHIFAST_SECRET_KEY` (or `PACHIFAST_AUTH_DATABASE_URL`) before `init`: `init` generates the secret key and writes it to `.env`, and it stops when the environment already holds a different value, because environment variables win over `.env`. If it stops, run `unset PACHIFAST_SECRET_KEY` and try again, or copy the value you want into `.env`.
+
 `pachifast init` is safe to run again: it never overwrites a value already in `.env`, does not recreate migrations that exist, and leaves an existing user alone. It prompts for the superuser password unless you pass `--password`. Useful options:
 
 | Option | Meaning |
@@ -105,10 +107,19 @@ demo/
   project_modules.py     # the MODULES registry
   pachifast.yaml         # optional configuration, with the editor schema hook
   pachifast.schema.json  # JSON Schema for pachifast.yaml
-  .env.example           # PACHIFAST_SECRET_KEY placeholder
+  .env.example           # PACHIFAST_SECRET_KEY placeholder (+ BILLING_DATABASE_URL example)
   pyproject.toml
   README.md
 ```
+
+`new app billing --with-db` also appends a commented `BILLING_DATABASE_URL=sqlite+aiosqlite:///./billing.db` line to `.env.example`. The database of a module has no default: before running `pachifast migrations init` (or `revision`, `upgrade`) for the `billing` target, put that variable in `.env` (uncommented, with the URL you want), for example:
+
+```bash
+echo 'BILLING_DATABASE_URL=sqlite+aiosqlite:///./billing.db' >> .env
+uv run pachifast migrations init --target-name billing
+```
+
+Without it the command fails with `Migration target 'billing' has no configured database URL` and the name of the variable to set.
 
 After `pachifast init` you also get `.env` (never commit it: the generated `.gitignore` already excludes it), `db.sqlite3` and a `migrations/` folder with one subfolder per migration target (`auth`, plus `billing` once you create its migrations).
 
@@ -204,6 +215,16 @@ Open the Swagger UIs in a browser:
 
 Use the **Authorize** button with the superuser credentials to try protected routes.
 
+The OpenAPI document is plain JSON, for code generators and API clients:
+
+| URL | Contains |
+| --- | --- |
+| `http://127.0.0.1:8000/api/v1/openapi.json` | the full schema (core, apps and common modules) |
+| `http://127.0.0.1:8000/api/v1/openapi-apps.json` | your routes only (what `/docs` shows) |
+| `http://127.0.0.1:8000/api/v1/openapi-core.json` | the built-in routes only (what `/docs/core` shows) |
+
+Logging in is `POST /api/auth/token` with form-encoded fields (`username` and `password`, not JSON), as shown above.
+
 ## Without the CLI
 
 The CLI only generates files: a service is plain Python. This is the smallest one that runs (checked with `TestClient` and `uvicorn`), in a folder of your choice:
@@ -246,7 +267,7 @@ app = create_app((core_module, hello))
 auth_database_url: sqlite+aiosqlite:///./db.sqlite3
 ```
 
-Run it with a secret key in the environment (the key is required: the app refuses to start without it):
+Run it with a secret key in the environment (this path does not use `init`; do not mix it with a later `pachifast init` in the same shell, which would refuse to run until you `unset PACHIFAST_SECRET_KEY`; the key is required: the app refuses to start without it):
 
 ```bash
 export PACHIFAST_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")

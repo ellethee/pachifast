@@ -7,7 +7,7 @@ import typer
 from rich.markup import escape
 from rich.table import Table
 
-from pachifast.cli.helpers import console, handle_errors
+from pachifast.cli.helpers import console, err_console, handle_errors
 from pachifast.cli.services import locale as locale_service
 from pachifast.i18n import exporter
 
@@ -136,8 +136,9 @@ def permissions(
 @handle_errors
 def export(
     dest_path: Annotated[
-        Path, typer.Option("--dest-path", help="Folder that receives one <language>.json per language.")
-    ],
+        Path | None,
+        typer.Option("--dest-path", help="Folder that receives one <language>.json per language (required)."),
+    ] = None,
     base_dir: BaseDirOption = Path("."),
     namespace: Annotated[
         str, typer.Option("--namespace", help="Wrap the messages in this dotted path, e.g. errors.codes.")
@@ -162,6 +163,13 @@ def export(
     The files are generated: they are always overwritten and never read back. Keep the texts that end users
     change in a separate override file merged after them, or in the project's locale/ directory.
     """
+    if dest_path is None:
+        err_console.print(
+            "[bold red]error:[/bold red] missing option '--dest-path': pass the folder that receives one "
+            "<language>.json per language, for example `pachifast locale export --dest-path frontend/src/locales`.",
+            highlight=False,
+        )
+        raise typer.Exit(code=2)
     report, problems = locale_service.export_project(
         str(base_dir),
         str(dest_path),

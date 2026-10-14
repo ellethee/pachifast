@@ -53,7 +53,7 @@ def load_migration_target(project_root: str | Path, target_name: str) -> LoadedM
     imported_modules = _import_model_modules(target)
     database_url = _resolve_database_url(target)
     if not database_url:
-        raise RuntimeError(f"Migration target {target.name!r} has no configured database URL")
+        raise RuntimeError(_missing_database_url_message(target))
 
     table_names = _collect_table_names(imported_modules)
     return LoadedMigrationTarget(
@@ -176,6 +176,22 @@ def _build_include_object(table_names: tuple[str, ...]) -> Callable:
         return True
 
     return include_object
+
+
+def _missing_database_url_message(target: MigrationTarget) -> str:
+    """Explain how to configure the database URL of a migration target, naming the variable and an example."""
+    variable = f"{target.name.upper()}_DATABASE_URL"
+    if target.database_url_field:
+        field = type(get_settings()).model_fields.get(target.database_url_field)
+        alias = getattr(field, "validation_alias", None)
+        if isinstance(alias, str):
+            variable = alias
+    return (
+        f"Migration target {target.name!r} has no configured database URL. "
+        f"Set {variable} in .env or in the environment, for example "
+        f"{variable}=sqlite+aiosqlite:///./{target.name}.db "
+        "(modules created with `pachifast new app <name> --with-db` use <NAME>_DATABASE_URL)."
+    )
 
 
 def _resolve_database_url(target: MigrationTarget) -> str:

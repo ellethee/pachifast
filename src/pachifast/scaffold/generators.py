@@ -79,6 +79,7 @@ def create_app(name: str, base_dir: str = ".", register: bool = True, with_db: b
     if with_db:
         write_file(app_dir / "settings.py", templates.db_settings_template(app_name, with_db=True))
         write_file(app_dir / "models.py", templates.db_models_template(app_name))
+        _document_database_url(root, app_name)
     write_file(app_dir / "module.py", templates.app_template_module(app_name, with_db=with_db))
     _create_locale_package(app_dir, app_name)
 
@@ -109,12 +110,30 @@ def create_common(name: str, base_dir: str = ".", register: bool = True, with_db
     write_file(common_dir / "settings.py", templates.db_settings_template(common_name, with_db=with_db))
     if with_db:
         write_file(common_dir / "models.py", templates.db_models_template(common_name))
+        _document_database_url(root, common_name)
     write_file(common_dir / "module.py", templates.common_template_module(common_name, with_db=with_db))
     _create_locale_package(common_dir, f"common.{common_name}")
 
     if register:
         register_module(root / "project_modules.py", f"common.{common_name}.module", f"{common_name}_common_module")
     return common_dir
+
+
+def _document_database_url(root: Path, name: str) -> None:
+    """Append a commented ``<NAME>_DATABASE_URL`` example to the project's ``.env.example``, when there is one."""
+    example = root / ".env.example"
+    if not example.is_file():
+        return
+    text = example.read_text(encoding="utf-8")
+    variable = f"{name.upper()}_DATABASE_URL"
+    if variable in text:
+        return
+    separator = "" if text.endswith("\n") or not text else "\n"
+    example.write_text(
+        f"{text}{separator}\n# Database of the module {name!r}; required by `pachifast migrations`.\n"
+        f"# {variable}=sqlite+aiosqlite:///./{name}.db\n",
+        encoding="utf-8",
+    )
 
 
 def _create_locale_package(module_dir: Path, module_name: str) -> None:

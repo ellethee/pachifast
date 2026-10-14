@@ -32,7 +32,7 @@ Every setting can be given as a key of `pachifast.yaml` (case-insensitive), as a
 | `dbdebug` | boolean | `false` | Log the SQL statements. |
 | `debug` | boolean | `false` | Show the traceback page to clients on errors: development only, off by default. |
 | `default_locale` | string | `en` | Language of the API error messages (language tag, e.g. en, it, pt-BR). |
-| `description` | string |  | Description of the project (taken from pyproject.toml when empty). |
+| `description` | string |  | Description of the project, reported by /api/health/ (empty: no description). |
 | `disable_core_routers` | list or comma-separated string |  | Routers of the core not to mount (e.g. permissions). |
 | `disable_core_routes` | list or comma-separated string |  | Routes of the core not to expose: `[METHOD ]/path`, relative to /api. |
 | `disable_routers` | list or comma-separated string |  | Routers of the project not to mount. |
@@ -63,7 +63,7 @@ Every setting can be given as a key of `pachifast.yaml` (case-insensitive), as a
 | `password_min_length` | integer | `12` | Minimum length of a password. |
 | `permission_table` | string |  | Name of the permissions table (empty: table_prefix + permission). |
 | `port` | integer | `8000` | Port of the development server. |
-| `project_name` | string |  | Name of the project (taken from pyproject.toml when empty). |
+| `project_name` | string |  | Name of the project, reported by /api/health/ (empty: the application title, default PachiFast). |
 | `refresh_reuse_grace_seconds` | integer | `10` | Grace seconds in which a reused refresh token is refused but the login is kept. |
 | `refresh_token_expire_days` | integer | `7` | Lifetime of a refresh token, in days. |
 | `refresh_token_rotation` | boolean | `true` | Every refresh issues a new, single-use refresh token; a reused one revokes the login. |
@@ -77,5 +77,5 @@ Every setting can be given as a key of `pachifast.yaml` (case-insensitive), as a
 | `user_permission_table` | string |  | Name of the user-permission table (empty: table_prefix + user_permission). |
 | `user_settings_table` | string |  | Name of the user settings table (empty: table_prefix + user_settings). |
 | `user_table` | string |  | Name of the users table (empty: table_prefix + user). |
-| `version` | string |  | Version of the project (taken from pyproject.toml when empty). |
+| `version` | string |  | Version of the project, reported by /api/health/ (empty: the application version, default 0.1.0). |
 | `wrap_auth_token_response` | boolean | `false` | Wrap the login and refresh-token responses in the standard envelope. |

@@ -27,7 +27,10 @@ def purge_activity_log(*, base_dir: str = ".", days: int | None = None, dry_run:
 
         keep = days if days is not None else get_settings().activity_log_retention_days
         if keep <= 0:
-            raise ValueError("Say how many days to keep: --days N, or set activity_log_retention_days.")
+            raise ValueError(
+                "No retention is configured (activity_log_retention_days is 0). "
+                "Pass --days N to say how many days to keep, or set activity_log_retention_days."
+            )
         cutoff = utcnow() - timedelta(days=keep)
         if dry_run:
             count = (

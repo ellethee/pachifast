@@ -73,6 +73,7 @@ def create_app(
         or getattr(settings, "title", "")
         or "PachiFast",
         version=settings.version or "0.1.0",
+        description=settings.description,
         debug=settings.debug,
         lifespan=lifespan,
         redirect_slashes=False,

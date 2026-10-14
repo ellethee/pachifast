@@ -76,9 +76,11 @@ def _check_no_environment_conflict(values: dict[str, str]) -> None:
         if not current or current == values[key]:
             continue
         shown = f" ({_safe_url(current)})" if key == DATABASE_URL_VAR else ""
+        fix = f"Run `unset {key}` and try again, so that `init` writes its own value in .env"
         raise ValueError(
-            f"{key} is already set in your environment{shown} and would override the value in .env. "
-            f"Run `unset {key}` (or export the value you want) and try again."
+            f"{key} is already set in your environment{shown} and would override the value in .env, "
+            f"which was left untouched. {fix}. To keep the value from the environment, copy it into .env "
+            f"({key}=...) and run `init` again."
         )
 
 

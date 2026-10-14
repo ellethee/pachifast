@@ -7,6 +7,7 @@
   "properties": {
     "access_token_expire_minutes": {
       "default": 30,
+      "minimum": 1,
       "type": "integer",
       "description": "Lifetime of an access token, in minutes."
     },
@@ -20,6 +21,12 @@
       "type": "string",
       "description": "Comma-separated path fragments that are never logged."
     },
+    "activity_log_retention_days": {
+      "default": 0,
+      "minimum": 0,
+      "type": "integer",
+      "description": "Days of activity log that `pachifast audit purge` keeps; 0 needs --days."
+    },
     "activity_log_table": {
       "default": "",
       "type": "string",
@@ -27,6 +34,11 @@
     },
     "algorithm": {
       "default": "HS256",
+      "enum": [
+        "HS256",
+        "HS384",
+        "HS512"
+      ],
       "type": "string",
       "description": "JWT signing algorithm."
     },
@@ -84,6 +96,32 @@
       "type": "string",
       "description": "SQLAlchemy URL of the main database (async driver, e.g. postgresql+asyncpg://...). Prefer the environment variable or the .env file: do not commit it."
     },
+    "db_max_overflow": {
+      "default": 10,
+      "maximum": 500,
+      "minimum": 0,
+      "type": "integer",
+      "description": "Extra connections allowed above db_pool_size under load, per process."
+    },
+    "db_pool_recycle": {
+      "default": 1800,
+      "minimum": -1,
+      "type": "integer",
+      "description": "Seconds after which a connection is replaced; -1 never."
+    },
+    "db_pool_size": {
+      "default": 5,
+      "maximum": 500,
+      "minimum": 1,
+      "type": "integer",
+      "description": "Connections a server database (PostgreSQL) keeps open, per process."
+    },
+    "db_pool_timeout": {
+      "default": 30,
+      "minimum": 1,
+      "type": "integer",
+      "description": "Seconds a request waits for a free connection before it fails."
+    },
     "dbdebug": {
       "default": false,
       "type": "boolean",
@@ -103,7 +141,7 @@
     "description": {
       "default": "",
       "type": "string",
-      "description": "Description of the project (taken from pyproject.toml when empty)."
+      "description": "Description of the project, reported by /api/health/ (empty: no description)."
     },
     "disable_core_routers": {
       "description": "Routers of the core not to mount (e.g. permissions).",
@@ -234,6 +272,15 @@
       "type": "string",
       "description": "Address the development server (`pachifast dev`) listens on."
     },
+    "log_format": {
+      "default": "text",
+      "enum": [
+        "text",
+        "json"
+      ],
+      "type": "string",
+      "description": "Format of the log lines: text (coloured) or json (one object per line)."
+    },
     "log_level": {
       "default": "",
       "type": "string",
@@ -287,6 +334,13 @@
       "type": "string",
       "description": "Name of the pending MFA challenges table (empty: table_prefix + mfa_pending)."
     },
+    "mfa_send_cooldown_seconds": {
+      "default": 30,
+      "maximum": 3600,
+      "minimum": 0,
+      "type": "integer",
+      "description": "Seconds between two codes sent by the email or SMS enrolment; 0 is no wait."
+    },
     "mfa_totp_issuer": {
       "default": "",
       "type": "string",
@@ -312,7 +366,7 @@
     "project_name": {
       "default": "",
       "type": "string",
-      "description": "Name of the project (taken from pyproject.toml when empty)."
+      "description": "Name of the project, reported by /api/health/ (empty: the application title, default PachiFast)."
     },
     "refresh_reuse_grace_seconds": {
       "default": 10,
@@ -322,6 +376,7 @@
     },
     "refresh_token_expire_days": {
       "default": 7,
+      "minimum": 1,
       "type": "integer",
       "description": "Lifetime of a refresh token, in days."
     },
@@ -334,6 +389,11 @@
       "default": false,
       "type": "boolean",
       "description": "Allow POST /auth/register (anyone can create an account); false answers 403."
+    },
+    "request_id_enabled": {
+      "default": true,
+      "type": "boolean",
+      "description": "Put an X-Request-ID header on every response and the id in every log line."
     },
     "secret_key": {
       "default": "",
@@ -378,7 +438,7 @@
     "version": {
       "default": "",
       "type": "string",
-      "description": "Version of the project (taken from pyproject.toml when empty)."
+      "description": "Version of the project, reported by /api/health/ (empty: the application version, default 0.1.0)."
     },
     "wrap_auth_token_response": {
       "default": false,

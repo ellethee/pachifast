@@ -59,6 +59,9 @@ def test_new_app_and_common(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
     assert (root / "apps" / "orders" / "models.py").is_file()
     assert (root / "apps" / "orders" / "settings.py").is_file()
+    example = (root / ".env.example").read_text(encoding="utf-8")
+    assert "# ORDERS_DATABASE_URL=sqlite+aiosqlite:///./orders.db" in example
+    assert "PACHIFAST_SECRET_KEY=" in example
 
     result = runner.invoke(app, ["new", "common", "shared", "--base-dir", str(root)])
     assert result.exit_code == 0, result.output
@@ -515,3 +518,27 @@ def test_migrations_strip_sqlmodel_rewrites_old_revisions(tmp_path: Path) -> Non
     assert "sa.String(length=10)" in text and "sa.String()" in text
     assert (versions / "b_clean.py").read_text() == clean
     assert runner.invoke(app, ["migrations", "strip-sqlmodel", "--base-dir", str(tmp_path), "--check"]).exit_code == 0
+
+
+def test_init_environment_conflict_message_says_what_to_do(tmp_path: Path, monkeypatch) -> None:
+    """A secret key already in the environment is refused with an actionable message, without echoing it."""
+    monkeypatch.setattr(os, "environ", {k: v for k, v in os.environ.items() if not k.startswith("PACHIFAST_")})
+    root = _new_demo_project(tmp_path)
+    os.environ["PACHIFAST_SECRET_KEY"] = "an-old-exported-secret-key-0123456789abcdef"
+
+    result = runner.invoke(app, ["init", "--base-dir", str(root), "--password", "s3cret-pass-1"])
+    output = " ".join(result.output.split())
+    assert result.exit_code == 1
+    assert "PACHIFAST_SECRET_KEY is already set in your environment" in output
+    assert "unset PACHIFAST_SECRET_KEY" in output
+    assert "copy it into .env" in output
+    assert "an-old-exported-secret-key" not in output
+    assert not (root / ".env").exists()
+
+
+def test_locale_export_without_dest_path_names_the_option(tmp_path: Path) -> None:
+    """The missing folder is reported with the option name and an example."""
+    result = runner.invoke(app, ["locale", "export", "--base-dir", str(tmp_path)])
+    output = " ".join(result.output.split())
+    assert result.exit_code == 2
+    assert "--dest-path" in output

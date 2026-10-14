@@ -120,8 +120,9 @@ def test_load_migration_target_without_url_fails(tmp_path: Path, monkeypatch: py
         "def url():\n    return ''\n",
     )
     try:
-        with pytest.raises(RuntimeError, match="no configured database URL"):
+        with pytest.raises(RuntimeError, match="no configured database URL") as excinfo:
             runtime.load_migration_target(root, "t")
+        assert "T_DATABASE_URL=sqlite+aiosqlite:///./t.db" in str(excinfo.value)
     finally:
         sys.modules.pop("project_modules", None)
         runtime.configure_modules(())
