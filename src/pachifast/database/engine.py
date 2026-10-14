@@ -36,19 +36,19 @@ def _is_sqlite_url(database_url: str) -> bool:
 
 
 def get_session_database_label(session: AsyncSession) -> str | None:
-    """Identificativo (host/database) del DB a cui è legata la sessione, senza credenziali."""
+    """Identifier (host/database) of the DB the session is bound to, without credentials."""
     try:
         url = session.get_bind().url
         if url.host:
             return f"{url.host}/{url.database}" if url.database else url.host
         return url.database or None
     except Exception:
-        log.debug("Impossibile determinare il database della sessione", exc_info=True)
+        log.debug("Cannot determine the session database", exc_info=True)
         return None
 
 
 def add_request_database(request: Request, session: AsyncSession) -> None:
-    """Aggiunge il database della sessione a request.state.database (lista, senza duplicati)."""
+    """Add the session database to request.state.database (a list, without duplicates)."""
     label = get_session_database_label(session)
     if not label:
         return
@@ -58,12 +58,12 @@ def add_request_database(request: Request, session: AsyncSession) -> None:
 
 
 def set_core_request_database(request: HTTPConnection, session: AsyncSession) -> None:
-    """Registra il database auth/core separatamente da request.state.database.
+    """Register the auth/core database separately from request.state.database.
 
-    get_core_session gira sull'auth-check di quasi ogni richiesta autenticata: se lo
-    aggiungessimo alla lista "business" (add_request_database) comparirebbe come rumore
-    accanto al database realmente usato dall'endpoint. EnvelopeRoute lo usa solo come
-    fallback quando request.state.database è vuota (endpoint che leggono/scrivono solo sul
+    get_core_session runs on the auth check of almost every authenticated request: if we
+    added it to the "business" list (add_request_database) it would show up as noise
+    next to the database the endpoint really uses. EnvelopeRoute only uses it as a
+    fallback when request.state.database is empty (endpoints that only read/write the
     database core).
     """
     label = get_session_database_label(session)
@@ -146,9 +146,9 @@ def get_engine_from_url(database_url: str, echo: bool | None = None, connect_arg
     if database_url not in _engine_cache:
         echo = echo if settings.dbdebug else False
         if _is_sqlite_url(database_url):
-            # SQLite non supporta il connection pool di SQLAlchemy.
-            # In-memory (:memory:) richiede StaticPool per condividere la connessione;
-            # i file SQLite usano NullPool per evitare conflitti di scrittura concorrente.
+            # SQLite does not support the SQLAlchemy connection pool.
+            # In-memory (:memory:) needs StaticPool to share the connection;
+            # SQLite files use NullPool to avoid concurrent-write conflicts.
             is_memory = ":memory:" in database_url
             kwargs: dict = dict(
                 echo=echo or settings.dbdebug,

@@ -12,9 +12,9 @@ T = TypeVar("T")
 
 
 def _coerce_csv_list(v: Any) -> Any:
-    """Normalizza lista con eventuali stringhe CSV in lista piatta.
+    """Normalize a list with possible CSV strings into a flat list.
 
-    Consente di usare sia ?x=1&x=2 (repeated) che ?x=1,2,3 (CSV) come query param.
+    Allows both ?x=1&x=2 (repeated) and ?x=1,2,3 (CSV) as a query param.
     ['1,2', '3'] → ['1', '2', '3']
     """
     if not isinstance(v, list):
@@ -29,10 +29,10 @@ def _coerce_csv_list(v: Any) -> Any:
 
 
 def ListQuery(default: Any = None, **kwargs: Any) -> Any:
-    """Wrapper per Query() su campi List[T].
+    """Wrapper for Query() on List[T] fields.
 
-    Accetta sia parametri ripetuti (?status=1&status=2) che CSV (?status=1,2,3)
-    quando usato insieme a BeforeValidator(_coerce_csv_list):
+    Accepts both repeated parameters (?status=1&status=2) and CSV (?status=1,2,3)
+    when used together with BeforeValidator(_coerce_csv_list):
 
         from typing import Annotated
         from pydantic import BeforeValidator
@@ -54,10 +54,10 @@ class StandardResponse(BaseModel, Generic[T]):
 
 
 class PageParams(AliasedBaseModel):
-    page: int | None = Query(None, ge=1, description="Numero della pagina")
-    pageSize: int | None = Query(None, ge=0, description="Numero di elementi per pagina")
-    orderBy: str | None = Query(None, description="Campo per l'ordinamento")
-    search: str | None = Query(None, description="Termine di ricerca per filtrare i risultati")
+    page: int | None = Query(None, ge=1, description="Page number")
+    pageSize: int | None = Query(None, ge=0, description="Number of items per page")
+    orderBy: str | None = Query(None, description="Field to order by")
+    search: str | None = Query(None, description="Search term to filter the results")
 
     search_fields: ClassVar[list[str]] = []
     #: columns a client may sort by; ``None`` means every mapped column

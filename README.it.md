@@ -2,7 +2,7 @@
 
 # pachifast
 
-[English](README.md)
+[English](https://github.com/ellethee/pachifast/blob/main/README.md)
 
 Framework open source per costruire servizi [FastAPI](https://fastapi.tiangolo.com/) con una struttura modulare, una CLI
 che genera progetti e moduli, autenticazione integrata con ruoli e permessi e migrazioni Alembic su più database.
@@ -35,22 +35,22 @@ uv tool install pachifast
 pachifast --version
 ```
 
-In un progetto, `uv add pachifast` fa lo stesso. Oppure da un tag di release del sorgente (sostituisci `vX.Y.Z` con un tag del repository):
+In un progetto, `uv add pachifast` fa lo stesso. Per installare una versione specifica da PyPI (sostituisci `X.Y.Z`):
 
 ```bash
-uv tool install "git+https://github.com/ellethee/pachifast@vX.Y.Z"
+uv tool install pachifast==X.Y.Z
 ```
 
 La cache Redis è un extra: `pachifast[redis]`; PostgreSQL è `pachifast[postgres]`. Database supportati: SQLite e
-PostgreSQL. Per altre opzioni di installazione vedi [Getting started](docs/getting-started.md)
+PostgreSQL. Per altre opzioni di installazione vedi [Getting started](https://pachifast.ilpachi.it/getting-started/)
 (in inglese).
 
 ## Stabilità
 
 pachifast è in **alpha**: il contratto dell'API (envelope di risposta, codici dei messaggi) è protetto da test, ma
 impostazioni, CLI e schema del database del core possono cambiare in ogni versione minore 0.x, sempre annunciate nel
-[changelog](CHANGELOG.md) e in [Upgrading](docs/guides/upgrading.md). Dettagli e politica di deprecazione:
-[Stability](docs/guides/stability.md) (in inglese).
+[changelog](https://github.com/ellethee/pachifast/blob/main/CHANGELOG.md) e in [Upgrading](https://pachifast.ilpachi.it/guides/upgrading/). Dettagli e politica di deprecazione:
+[Stability](https://pachifast.ilpachi.it/guides/stability/) (in inglese).
 
 ## Avvio rapido
 
@@ -64,7 +64,7 @@ pachifast dev                           # avvio con ricarica automatica
 Poi apri <http://127.0.0.1:8000/docs> (endpoint dell'applicazione) o <http://127.0.0.1:8000/docs/core> (autenticazione,
 amministrazione, health, versione). Le rotte dell'applicazione richiedono un token: accedi con `POST /api/auth/token`.
 
-Vuoi vedere prima un progetto completo? [`examples/demo`](examples/demo) è un backend funzionante (MFA, model admin, un modulo con
+Vuoi vedere prima un progetto completo? [`examples/demo`](https://github.com/ellethee/pachifast/tree/main/examples/demo) è un backend funzionante (MFA, model admin, un modulo con
 tabelle, upload, azioni di massa e impostazioni per utente) che gira su SQLite, senza servizi esterni.
 
 Un progetto ha questa struttura:
@@ -81,15 +81,15 @@ demo/
 
 ## Documentazione
 
-La documentazione completa (in inglese) è pubblicata su <https://pachifast.ilpachi.it/> e si trova in [`docs/`](docs/index.md): guida introduttiva, guide per argomento,
-riferimenti generati dal codice (CLI, impostazioni, codici dei messaggi), [changelog](CHANGELOG.md) e
-[contributi](docs/contributing.md).
+La documentazione completa (in inglese) è pubblicata su <https://pachifast.ilpachi.it/> e si trova in [`docs/`](https://github.com/ellethee/pachifast/tree/main/docs): guida introduttiva, guide per argomento,
+riferimenti generati dal codice (CLI, impostazioni, codici dei messaggi), [changelog](https://github.com/ellethee/pachifast/blob/main/CHANGELOG.md) e
+[contributi](https://pachifast.ilpachi.it/contributing/).
 
 ## Licenza
 
-MIT, vedi [LICENSE](LICENSE).
+MIT, vedi [LICENSE](https://github.com/ellethee/pachifast/blob/main/LICENSE).
 
 **Esclusione di garanzia.** pachifast è fornito "così com'è" ("as is"), senza garanzie di alcun tipo. È software alpha:
 può contenere errori e cambiare in modo incompatibile tra versioni minori. Sei responsabile di verificare, testare e
 mettere in sicurezza le applicazioni che costruisci con pachifast prima di usarle in produzione. Vedi la
-[politica di stabilità](docs/guides/stability.md).
+[politica di stabilità](https://pachifast.ilpachi.it/guides/stability/).

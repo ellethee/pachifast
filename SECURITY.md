@@ -11,9 +11,10 @@ pachifast is in alpha. Only the latest released minor version receives security 
 
 ## Reporting a vulnerability
 
-Do **not** open a public issue for a security problem. Write to the maintainer (ilPachi) at
-**ilpachi@ilpachi.it** with the subject "pachifast security". Include the affected version, a description of the
-impact and, if possible, steps to reproduce.
+Do **not** open a public issue for a security problem. The preferred channel is GitHub private vulnerability
+reporting: <https://github.com/ellethee/pachifast/security/advisories/new>. Alternatively, write to the maintainer
+(ilPachi) at **ilpachi@ilpachi.it** with the subject "pachifast security". Include the affected version, a
+description of the impact and, if possible, steps to reproduce.
 
 You can expect an acknowledgement within a few days. Disclosure is coordinated: please give us up to **90 days** from your report to release a fix before you publish details; we will tell you sooner when it is ready, and agree a date with you if a fix needs longer. A fix is released as a patch version and noted in the
 [changelog](CHANGELOG.md); reporters are credited unless they prefer otherwise.

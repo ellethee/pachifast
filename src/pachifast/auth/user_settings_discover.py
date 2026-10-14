@@ -35,7 +35,7 @@ def _text(key: str, default: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Helper per definire campi con metadati UI (componente frontend, label, ecc.)
+# Helper to define fields with UI metadata (frontend component, label, etc.)
 # ---------------------------------------------------------------------------
 
 
@@ -83,24 +83,24 @@ def ui_field(
     watch: dict[str, str | dict[str, Any]] | None = None,
     **field_kwargs: Any,
 ) -> Any:
-    """Field Pydantic arricchito con metadati per il rendering frontend.
+    """Pydantic Field enriched with metadata for frontend rendering.
 
     Args:
-        default:    valore di default del campo
-        component:  tipo di componente Quasar ('input', 'select', 'toggle', 'number', ...); se omesso lo
-                    deduce il frontend dallo schema: Literal -> 'select', bool -> 'toggle', int/float -> 'number'
-        label:      etichetta da mostrare nel form (opzionale)
-        apply:      nome di un "applier" del frontend che riceve il valore del campo ogni volta che cambia (e al
-                    login), es. "theme" o "locale"; solo un nome semplice, MAI codice (opzionale)
-        properties: props del componente, es. {"options": [...], "emitValue": True}
-        events:     azioni da eseguire a un evento Vue, es. {"update:modelValue": "toggleDark"} oppure
-                    {"update:modelValue": ui_action("setLocale", from_value=True)}: nome di un'azione nota al
-                    frontend + argomenti JSON, MAI codice (il codice JavaScript viene rifiutato con ValueError)
-        watch:      azioni da eseguire quando cambia un campo, es. {"theme": "applyTheme"} (opzionale)
-        **field_kwargs: eventuali argomenti aggiuntivi passati a Field()
+        default:    default value of the field
+        component:  Quasar component type ('input', 'select', 'toggle', 'number', ...); if omitted the
+                    frontend infers it from the schema: Literal -> 'select', bool -> 'toggle', int/float -> 'number'
+        label:      label shown in the form (optional)
+        apply:      name of a frontend "applier" that receives the field value every time it changes (and at
+                    login), e.g. "theme" or "locale"; a plain name only, NEVER code (optional)
+        properties: component props, e.g. {"options": [...], "emitValue": True}
+        events:     actions to run on a Vue event, e.g. {"update:modelValue": "toggleDark"} or
+                    {"update:modelValue": ui_action("setLocale", from_value=True)}: name of an action known to the
+                    frontend + JSON arguments, NEVER code (JavaScript code is rejected with ValueError)
+        watch:      actions to run when a field changes, e.g. {"theme": "applyTheme"} (opzionale)
+        **field_kwargs: any extra arguments passed to Field()
 
-    I metadati finiscono in json_schema_extra e vengono esposti da
-    GET /user/settings/schema, ma NON vengono serializzati nei valori utente.
+    The metadata end up in json_schema_extra and are exposed by
+    GET /user/settings/schema, but are NOT serialized into the user values.
 
     Esempio:
         theme: str = ui_field(
@@ -139,15 +139,15 @@ def ui_field(
 
 
 class BaseUserSettings(AliasedBaseModel):
-    """Classe base per i settings utente di ogni app.
+    """Base class for the per-app user settings.
 
-    Per personalizzare ogni sezione nelle sottoclassi:
-        __section_name__ = "myapp"       # nome sezione nel JSON
+    To customize each section in subclasses:
+        __section_name__ = "myapp"       # section name in the JSON
         _route: ClassVar[str] = "/myapp"  # route frontend dell'app
     """
 
     model_config = ConfigDict(extra="allow", validate_assignment=True)
-    __section_name__: str | None = None  # attributo di classe, non field pydantic
+    __section_name__: str | None = None  # class attribute, not a pydantic field
     _route: ClassVar[str | None] = None
     _title: ClassVar[str | None] = None
     _icon: ClassVar[str | None] = None
@@ -155,19 +155,19 @@ class BaseUserSettings(AliasedBaseModel):
     @computed_field  # type: ignore[misc]
     @property
     def route(self) -> str | None:
-        """Route frontend dell'app. Renderizzato nella response, non salvato nel DB."""
+        """Frontend route of the app. Rendered in the response, not saved in the DB."""
         return self.__class__._route
 
     @computed_field  # type: ignore[misc]
     @property
     def title(self) -> str | None:
-        """Titolo dell'app. Renderizzato nella response, non salvato nel DB."""
+        """App title. Rendered in the response, not saved in the DB."""
         return self.__class__._title
 
     @computed_field  # type: ignore[misc]
     @property
     def icon(self) -> str | None:
-        """Icona dell'app. Renderizzata nella response, non salvata nel DB."""
+        """App icon. Rendered in the response, not saved in the DB."""
         return self.__class__._icon
 
 
@@ -175,7 +175,7 @@ _LOCALE = re.compile(r"^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$")
 
 
 class UserSettingsAppearance(BaseUserSettings):
-    """Sezione 'appearance' sempre presente: come l'app appare a questo utente."""
+    """Always-present 'appearance' section: how the app looks to this user."""
 
     __section_name__ = "appearance"
     _title = "Appearance"
@@ -221,7 +221,7 @@ class UserSettingsPreferences(BaseUserSettings):
 
 
 class UserSettingsAudit(BaseUserSettings):
-    """Sezione 'audit' — per il controllo del logging (solo superuser)."""
+    """'audit' section: controls logging (superuser only)."""
 
     __section_name__ = "audit"
     _title: ClassVar[str] = "Audit & Debug"
@@ -240,7 +240,7 @@ class UserSettingsAudit(BaseUserSettings):
 
 
 def _get_settings_classes(module: Any) -> list[type[BaseUserSettings]]:
-    """Restituisce le classi BaseUserSettings definite nel modulo (esclusa la base)."""
+    """Return the BaseUserSettings classes defined in the module (excluding the base)."""
     return [
         obj
         for _, obj in vars(module).items()
@@ -249,7 +249,7 @@ def _get_settings_classes(module: Any) -> list[type[BaseUserSettings]]:
 
 
 def _discover_sections(root: Path | None = None) -> dict[str, type[BaseUserSettings]]:
-    """Scansiona apps/* e common/* per classi BaseUserSettings."""
+    """Scan apps/* and common/* for BaseUserSettings classes."""
     rootpath = Path(root or Path.cwd())
     sections: dict[str, type[BaseUserSettings]] = {
         "appearance": UserSettingsAppearance,
@@ -276,7 +276,7 @@ def _discover_sections(root: Path | None = None) -> dict[str, type[BaseUserSetti
 
 @lru_cache
 def get_user_settings_model() -> type[AliasedBaseModel]:
-    """Costruisce e casha il modello Pydantic dinamico nidificato per i settings utente."""
+    """Build and cache the nested dynamic Pydantic model for the user settings."""
     sections = _discover_sections()
     fields: dict[str, tuple[type[BaseUserSettings], BaseUserSettings]] = {
         name: (cls, cls()) for name, cls in sections.items()
@@ -287,12 +287,12 @@ def get_user_settings_model() -> type[AliasedBaseModel]:
 
 
 # ---------------------------------------------------------------------------
-# Schema UI (per GET /user/settings/schema)
+# UI schema (for GET /user/settings/schema)
 # ---------------------------------------------------------------------------
 
 
 def _infer_component(annotation: Any) -> str:
-    """Inferisce il componente Quasar dal tipo Python del field.
+    """Infer the Quasar component from the field's Python type.
 
     Literal[...] → 'select'
     bool        → 'toggle'
@@ -424,24 +424,24 @@ def iter_text_keys(sections: dict[str, type[BaseUserSettings]]) -> list[tuple[st
 
 
 def build_ui_schema(model: type[AliasedBaseModel]) -> dict[str, Any]:
-    """Estrae i metadati UI da ogni sezione del modello UserSettings.
+    """Extract the UI metadata from every section of the UserSettings model.
 
-    Per i field con ui_field() usa i metadati espliciti (x_component, x_label, x_apply, x_properties).
-    Un campo Literal diventa un 'select' con le sue options, ge/le diventano min/max di un 'number'.
-    Per i field ordinari inferisce il componente dal tipo Python:
+    For fields with ui_field() use the explicit metadata (x_component, x_label, x_apply, x_properties).
+    A Literal field becomes a 'select' with its options; ge/le become min/max of a 'number'.
+    For ordinary fields the component is inferred from the Python type:
         bool        → 'toggle'
         int | float → 'number'
         str         → 'input'
 
-    Ritorna un dict camelCase pronto per il frontend:
+    Return a camelCase dict ready for the frontend:
         {
             "preferences": {
                 "theme": {
                     "component": "select",
-                    "label": "Tema",
+                    "label": "Theme",
                     "properties": {"options": [...]}
                 },
-                "notificationsEnabled": { "component": "toggle", "label": "Notifiche" }
+                "notificationsEnabled": { "component": "toggle", "label": "Notifications" }
             },
             "exampleApp": {
                 "useCompactView": { "component": "toggle" },

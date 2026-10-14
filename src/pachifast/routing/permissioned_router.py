@@ -1,4 +1,4 @@
-"""PermissionedRouter: APIRouter con supporto nativo ai controlli di permesso."""
+"""PermissionedRouter: APIRouter with native support for permission checks."""
 
 from typing import Any
 
@@ -8,37 +8,37 @@ from .envelope_route import EnvelopeRoute
 
 
 class PermissionedRouter(APIRouter):
-    """APIRouter che accetta parametri di autorizzazione sui decoratori delle route.
+    """APIRouter that accepts authorization parameters on the route decorators.
 
-    I parametri extra (permissions, require_staff, require_superuser, skip_auth,
-    skip_envelope, log_as) vengono intercettati e convertiti automaticamente in
-    dependency FastAPI o metadata. Possono essere usati sia su get_router()
-    (a livello di router intero) sia sui singoli decoratori
+    The extra parameters (permissions, require_staff, require_superuser, skip_auth,
+    skip_envelope, log_as) are intercepted and automatically converted into
+    FastAPI dependencies or metadata. They can be used both on get_router()
+    (for the whole router) and on the single decorators
     @router.get / .post / .put / .patch / .delete.
 
-    Esempi:
-        # Tutte le route dello stesso router richiedono is_staff
+    Examples:
+        # All routes of the same router require is_staff
         router = get_router(require_staff=True)
 
-        # Solo questa route richiede il permesso specifico
+        # Only this route requires the specific permission
         @router.get("/report", permissions=["reports.view"])
         async def get_report(): ...
 
-        # Solo superuser
+        # Superusers only
         @router.delete("/{id}", require_superuser=True)
         async def delete_item(id: int): ...
 
-        # Salta l'autenticazione per una singola route (il router usa auth di default)
+        # Skip authentication for a single route (the router uses auth by default)
         @router.get("/public", skip_auth=True)
         async def public_endpoint(): ...
 
-        # Risposta grezza, non avvolta in StandardResponse (es. endpoint OAuth2
-        # standard che devono restituire {access_token, ...} in cima al body)
+        # Raw response, not wrapped in StandardResponse (e.g. standard OAuth2
+        # endpoints that must return {access_token, ...} at the top of the body)
         @router.post("/token", skip_envelope=True)
         async def login(): ...
 
-        # Descrizione leggibile per il log attività (interpolata con path params e username)
-        @router.patch("/{id}", log_as="<b>{username}</b> ha modificato #{id}")
+        # Human-readable description for the activity log (interpolated with path params and username)
+        @router.patch("/{id}", log_as="<b>{username}</b> edited #{id}")
         async def update_item(id: int): ...
     """
 
@@ -60,7 +60,7 @@ class PermissionedRouter(APIRouter):
         require_staff: bool,
         require_superuser: bool,
     ) -> dict[str, Any]:
-        """Aggiunge la dependency di permesso alle dependencies della route."""
+        """Add the permission dependency to the route dependencies."""
         if not (permissions or require_staff or require_superuser):
             return kwargs
         from pachifast.auth.dependencies import make_permission_checker
@@ -71,11 +71,11 @@ class PermissionedRouter(APIRouter):
         return {**kwargs, "dependencies": deps}
 
     def _decorate_with_log_as(self, decorator: Any, log_as: str) -> Any:
-        """Wrappa un decorator di route per salvare log_as in openapi_extra.
+        """Wrap a route decorator to store log_as in openapi_extra.
 
-        Usiamo openapi_extra perché è l'unico dict che FastAPI copia esplicitamente
-        quando include_router() ricrea le route sull'app principale.
-        Il middleware lo legge come openapi_extra["x-log-as"].
+        We use openapi_extra because it is the only dict FastAPI copies explicitly
+        when include_router() recreates the routes on the main app.
+        The middleware reads it as openapi_extra["x-log-as"].
         """
 
         def wrapper(func: Any) -> Any:
@@ -105,10 +105,10 @@ class PermissionedRouter(APIRouter):
     ) -> None:  # type: ignore[override]
         """Add a route, temporarily stripping auth deps when skip_auth=True.
 
-        skip_envelope=True marca la route perché EnvelopeRoute non la avvolga in
-        StandardResponse (vedi routing/envelope_route.py) — il flag viaggia dentro
-        openapi_extra["x-skip-envelope"] perché è l'unico dict che FastAPI copia
-        esplicitamente quando include_router() ricrea le route sull'app principale.
+        skip_envelope=True marks the route so that EnvelopeRoute does not wrap it in
+        StandardResponse (see routing/envelope_route.py); the flag travels inside
+        openapi_extra["x-skip-envelope"] because it is the only dict FastAPI copies
+        explicitly when include_router() recreates the routes on the main app.
         """
         if skip_envelope:
             extra: dict[str, Any] = dict(kwargs.get("openapi_extra") or {})

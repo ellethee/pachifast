@@ -56,12 +56,12 @@ def get_order_by_clauses(
 
 
 def get_model_resolver(model_repository: dict[str, type[Base]]):
-    """Risolvi il modello ORM dal nome."""
+    """Resolve the ORM model from its name."""
 
     def resolve_class(name: str) -> type:
         model = model_repository.get(name.lower())
         if not model:
-            raise ValueError(f"Classe non supportata: {name}")
+            raise ValueError(f"Unsupported class: {name}")
         return model
 
     return resolve_class
@@ -69,7 +69,7 @@ def get_model_resolver(model_repository: dict[str, type[Base]]):
 
 def pop_non_fields_from_dict_by_model(model: type[T], data: dict, fields: list[str] | None = None) -> dict:
     """
-    Rimuove i campi non presenti nel modello ORM e restituisce i campi rimanenti.
+    Drop the fields not present on the ORM model and return the remaining ones.
     """
     if fields is None:
         fields = [a.key for a in inspect(model).mapper.column_attrs if not a.key.startswith("_")]

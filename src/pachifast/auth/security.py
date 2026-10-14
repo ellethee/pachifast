@@ -1,4 +1,4 @@
-"""Hashing password (Argon2id), token JWT e autenticazione utente."""
+"""Password hashing (Argon2id), JWT tokens and user authentication."""
 
 import math
 import uuid
@@ -43,7 +43,7 @@ _password_hash = PasswordHash(
     )
 )
 
-# Hash fittizio usato per uniformare i tempi di risposta quando l'utente non esiste.
+# Dummy hash used to equalize response times when the user does not exist.
 _DUMMY_HASH = _password_hash.hash("pachifast-dummy-password")
 
 
@@ -53,7 +53,7 @@ _DUMMY_HASH = _password_hash.hash("pachifast-dummy-password")
 
 
 def hash_password(password: str) -> str:
-    """Restituisce l'hash Argon2id (formato PHC) della password."""
+    """Return the Argon2id hash (PHC format) of the password."""
     return _password_hash.hash(password)
 
 
@@ -63,15 +63,15 @@ def get_password_hash(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str | None) -> bool:
-    """Verifica una password contro un hash PHC. Hash assente o non riconosciuto -> False."""
+    """Verify a password against a PHC hash. Missing or unrecognized hash -> False."""
     return verify_and_update_password(plain_password, hashed_password)[0]
 
 
 def verify_and_update_password(plain_password: str, hashed_password: str | None) -> tuple[bool, str | None]:
-    """Verifica la password e, se i parametri dell'hash sono obsoleti, ne calcola uno nuovo.
+    """Verify the password and, if the hash parameters are outdated, compute a new hash.
 
     Returns:
-        Tupla ``(valida, nuovo_hash)``: ``nuovo_hash`` e' ``None`` se non serve il rehash.
+        Tuple ``(valid, new_hash)``: ``new_hash`` is ``None`` if no rehash is needed.
     """
     if not hashed_password:
         return False, None
@@ -82,7 +82,7 @@ def verify_and_update_password(plain_password: str, hashed_password: str | None)
 
 
 def validate_password_policy(password: str) -> None:
-    """Applica la policy password (lunghezza minima da settings). Solleva ValueError se non valida."""
+    """Apply the password policy (minimum length from settings). Raise ValueError if invalid."""
     min_length = get_settings().password_min_length
     if len(password) < min_length:
         raise MessageError("auth.password_too_short", min_length=min_length)
@@ -94,7 +94,7 @@ def validate_password_policy(password: str) -> None:
 
 
 def _create_token(subject: str | uuid.UUID, token_type: str, expires_delta: timedelta) -> str:
-    """Crea un JWT firmato con claim ``sub``, ``type``, ``iat`` ed ``exp`` (UTC)."""
+    """Create a signed JWT with ``sub``, ``type``, ``iat`` and ``exp`` (UTC) claims."""
     settings = get_settings()
     now = datetime.now(UTC)
     payload = {"sub": str(subject), "type": token_type, "iat": now, "exp": now + expires_delta}
@@ -102,15 +102,15 @@ def _create_token(subject: str | uuid.UUID, token_type: str, expires_delta: time
 
 
 def create_access_token(subject: str | uuid.UUID) -> str:
-    """Crea un access token per l'utente indicato."""
+    """Create an access token for the given user."""
     return _create_token(subject, TOKEN_TYPE_ACCESS, timedelta(minutes=get_settings().ACCESS_TOKEN_EXPIRE_MINUTES))
 
 
 def create_refresh_token(subject: str | uuid.UUID) -> str:
-    """Crea un JWT di tipo refresh **senza** registrarlo: ``/refresh-token`` lo rifiuta.
+    """Create a refresh-type JWT **without** registering it: ``/refresh-token`` rejects it.
 
-    Serve a chi deve solo costruire un token del tipo giusto (test, strumenti). Per un login vero usare
-    :func:`issue_refresh_token`, che lo registra e permette rotazione e revoca.
+    For callers that only need a token of the right type (tests, tooling). For a real login use
+    :func:`issue_refresh_token`, which registers it and enables rotation and revocation.
     """
     return _create_token(subject, TOKEN_TYPE_REFRESH, timedelta(days=get_settings().REFRESH_TOKEN_EXPIRE_DAYS))
 
@@ -187,7 +187,7 @@ async def rotate_refresh_token(session: AsyncSession, payload: dict[str, Any], u
         grace = timedelta(seconds=get_settings().refresh_reuse_grace_seconds)
         if newest is not None and utcnow() - as_utc(newest) <= grace:
             raise revoked
-        log.warning("Refresh token riusato: login %s revocato (utente %s)", family, user_id)
+        log.warning("Refresh token reused: login %s revoked (user %s)", family, user_id)
         await revoke_refresh_family(session, family)
     raise revoked
 
@@ -205,7 +205,7 @@ async def revoke_user_refresh_tokens(session: AsyncSession, user_id: uuid.UUID) 
 
 
 def _unauthorized(code: str) -> HTTPException:
-    """Costruisce una HTTPException 401 (formato uniforme, messaggio localizzato) con header WWW-Authenticate."""
+    """Build a 401 HTTPException (uniform format, localized message) with a WWW-Authenticate header."""
     return api_error(
         status.HTTP_401_UNAUTHORIZED,
         code,
@@ -218,7 +218,7 @@ def decode_token(token: str, expected_type: str) -> dict[str, Any]:
     """Decodifica e valida un JWT verificando firma, scadenza e claim ``type``.
 
     Raises:
-        HTTPException: 401 se il token non e' valido, scaduto o del tipo sbagliato.
+        HTTPException: 401 if the token is invalid, expired or of the wrong type.
     """
     settings = get_settings()
     try:
@@ -236,7 +236,7 @@ def decode_token(token: str, expected_type: str) -> dict[str, Any]:
 
 
 def subject_to_user_id(payload: dict[str, Any]) -> uuid.UUID:
-    """Estrae l'UUID utente dal claim ``sub``. Solleva 401 se assente o malformato."""
+    """Extract the user UUID from the ``sub`` claim. Raise 401 if missing or malformed."""
     subject = payload.get("sub")
     if not subject:
         raise _unauthorized("auth.token_no_subject")
@@ -247,23 +247,23 @@ def subject_to_user_id(payload: dict[str, Any]) -> uuid.UUID:
 
 
 def decode_access_token(token: str) -> uuid.UUID:
-    """Decodifica un access token (``type == "access"``) e ritorna l'id utente."""
+    """Decode an access token (``type == "access"``) and return the user id."""
     return subject_to_user_id(decode_token(token, TOKEN_TYPE_ACCESS))
 
 
 def decode_refresh_token(token: str) -> uuid.UUID:
-    """Decodifica un refresh token (``type == "refresh"``) e ritorna l'id utente."""
+    """Decode a refresh token (``type == "refresh"``) and return the user id."""
     return subject_to_user_id(decode_token(token, TOKEN_TYPE_REFRESH))
 
 
 def ensure_token_not_revoked(payload: dict[str, Any], user: User) -> None:
-    """Rifiuta i token emessi prima dell'ultimo cambio password dell'utente.
+    """Reject tokens issued before the user's last password change.
 
-    Il claim ``iat`` ha risoluzione al secondo: un token emesso nello stesso secondo
-    del cambio password resta valido.
+    The ``iat`` claim has one-second resolution: a token issued in the same second
+    as the password change stays valid.
 
     Raises:
-        HTTPException: 401 se il token e' stato emesso prima di ``password_changed_at``.
+        HTTPException: 401 if the token was issued before ``password_changed_at``.
     """
     changed_at = as_utc(user.password_changed_at)
     if changed_at is None:
@@ -274,14 +274,14 @@ def ensure_token_not_revoked(payload: dict[str, Any], user: User) -> None:
 
 
 def decode_access_payload(token: str) -> dict[str, Any]:
-    """Decodifica un access token e ritorna il payload completo."""
+    """Decode an access token and return the full payload."""
     payload = decode_token(token, TOKEN_TYPE_ACCESS)
     subject_to_user_id(payload)
     return payload
 
 
 def decode_refresh_payload(token: str) -> dict[str, Any]:
-    """Decodifica un refresh token e ritorna il payload completo."""
+    """Decode a refresh token and return the full payload."""
     payload = decode_token(token, TOKEN_TYPE_REFRESH)
     subject_to_user_id(payload)
     return payload
@@ -293,7 +293,7 @@ def decode_refresh_payload(token: str) -> dict[str, Any]:
 
 
 def is_user_locked(user: User, now: datetime | None = None) -> bool:
-    """True se l'account e' temporaneamente bloccato (``locked_until`` nel futuro)."""
+    """True if the account is temporarily locked (``locked_until`` in the future)."""
     locked_until = as_utc(user.locked_until)
     return locked_until is not None and locked_until > (now or utcnow())
 
@@ -383,17 +383,17 @@ async def clear_login_failures(session: AsyncSession, user_id: uuid.UUID) -> Non
 async def authenticate_user(
     session: AsyncSession, username: str, password: str, *, clear_failures: bool = True
 ) -> User | None:
-    """Autentica un utente con username e password.
+    """Authenticate a user with username and password.
 
-    - Restituisce ``None`` per credenziali errate, utente inattivo o account bloccato
-      (risposta uniforme, per non rivelare l'esistenza dell'account).
-    - Ogni tentativo viene contato prima della verifica (:func:`reserve_login_attempt`): dopo
-      ``login_max_attempts`` tentativi senza successo l'account e' bloccato per ``login_lockout_minutes``
-      minuti, anche con richieste parallele.
-    - Se l'hash usa parametri obsoleti lo aggiorna in modo trasparente (rehash).
-    - Non aggiorna ``last_login_at``: vedi :func:`record_login`.
-    - Con ``clear_failures=False`` il tentativo resta contato e il chiamante deve chiudere il login con
-      :func:`clear_login_failures` oppure, se manca un secondo fattore, :func:`release_login_attempt`.
+    - Return ``None`` for wrong credentials, an inactive user or a locked account
+      (uniform response, so as not to reveal whether the account exists).
+    - Every attempt is counted before verification (:func:`reserve_login_attempt`): after
+      ``login_max_attempts`` unsuccessful attempts the account is locked for ``login_lockout_minutes``
+      minutes, even with parallel requests.
+    - If the hash uses outdated parameters it is transparently upgraded (rehash).
+    - Does not update ``last_login_at``: see :func:`record_login`.
+    - With ``clear_failures=False`` the attempt stays counted and the caller must finish the login with
+      :func:`clear_login_failures` or, if a second factor is missing, :func:`release_login_attempt`.
     """
     user = await get_user_by_username(session, username)
     if user is None:
@@ -468,7 +468,7 @@ async def _hash_cost(password: str, hashed: str) -> None:
 
 
 async def record_login(session: AsyncSession, user: User) -> None:
-    """Aggiorna ``last_login_at`` (UTC) dopo un login completato con successo."""
+    """Update ``last_login_at`` (UTC) after a successfully completed login."""
     user.last_login_at = utcnow()
     await session.commit()
     await signals.emit(signals.USER_LOGGED_IN, user=user)

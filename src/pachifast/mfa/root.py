@@ -1,4 +1,4 @@
-"""Endpoint MFA: setup, stato, verifica step-2 login."""
+"""MFA endpoints: setup, status, login step-2 verification."""
 
 import uuid
 from typing import Annotated
@@ -330,7 +330,7 @@ async def backup_codes_regenerate(
 
 
 # ---------------------------------------------------------------------------
-# Verify step-2 (noauth — protetto dal mfa_token)
+# Verify step-2 (noauth, protected by the mfa_token)
 # ---------------------------------------------------------------------------
 
 

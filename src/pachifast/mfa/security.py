@@ -1,4 +1,4 @@
-"""Funzioni crittografiche per il modulo MFA."""
+"""Cryptographic functions for the MFA module."""
 
 import asyncio
 import logging
@@ -108,7 +108,7 @@ def hash_backup_codes(codes: list[str]) -> list[str]:
 
 
 def verify_backup_code(code: str, hashed_codes: list[str]) -> int | None:
-    """Verifica il codice di backup; restituisce l'indice del codice usato o None."""
+    """Verify the backup code; return the index of the code used, or None."""
     from pachifast.auth.security import verify_password
 
     normalized = code.strip().upper()

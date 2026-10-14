@@ -1,4 +1,4 @@
-"""Modelli SQLAlchemy per la configurazione MFA e le challenge pendenti."""
+"""SQLAlchemy models for the MFA configuration and pending challenges."""
 
 import uuid
 from datetime import datetime
@@ -19,7 +19,7 @@ MFA_PENDING_TABLE = settings.get_table_name("mfa_pending")
 
 
 class UserMfaConfig(Base):
-    """Configurazione MFA di un utente (un solo metodo attivo per utente)."""
+    """MFA configuration of a user (a single active method per user)."""
 
     __tablename__ = MFA_CONFIG_TABLE
 
@@ -40,7 +40,7 @@ class UserMfaConfig(Base):
 
 
 class UserMfaPendingChallenge(Base):
-    """Challenge MFA in attesa di verifica (secondo step del login)."""
+    """MFA challenge awaiting verification (second step of the login)."""
 
     __tablename__ = MFA_PENDING_TABLE
 

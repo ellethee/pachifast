@@ -9,3 +9,9 @@ site/
 *.env
 .pytest_cache/
 .ruff_cache/
+*.db
+*.sqlite3
+.idea/
+.vscode/
+.DS_Store
+uploads/

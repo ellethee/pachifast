@@ -1,4 +1,4 @@
-"""Async DB operations per il modulo MFA."""
+"""Async DB operations for the MFA module."""
 
 import uuid
 from datetime import datetime

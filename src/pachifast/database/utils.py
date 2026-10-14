@@ -1,4 +1,4 @@
-"""Utility condivise per i modelli: UUID, datetime UTC e colonne JSON portabili."""
+"""Shared model utilities: UUIDs, UTC datetimes and portable JSON columns."""
 
 import uuid
 from datetime import UTC, datetime
@@ -18,7 +18,7 @@ def utcnow() -> datetime:
 
 
 def as_utc(value: datetime | None) -> datetime | None:
-    """Normalizza un datetime a UTC timezone-aware (i valori naive sono considerati UTC)."""
+    """Normalize a datetime to timezone-aware UTC (naive values are treated as UTC)."""
     if value is None:
         return None
     if value.tzinfo is None:
@@ -27,25 +27,25 @@ def as_utc(value: datetime | None) -> datetime | None:
 
 
 def new_uuid() -> uuid.UUID:
-    """Genera un nuovo UUID, v7 (ordinabile nel tempo) se disponibile, altrimenti v4."""
+    """Generate a new UUID: v7 (time-sortable) if available, otherwise v4."""
     generator = getattr(uuid, "uuid7", None)
     return generator() if generator is not None else uuid.uuid4()
 
 
 class UtcDateTime(TypeDecorator):
-    """DateTime che salva e restituisce sempre valori timezone-aware in UTC.
+    """DateTime that always stores and returns timezone-aware UTC values.
 
-    SQLite (e alcuni driver) restituiscono datetime naive anche con ``timezone=True``:
-    questo tipo li normalizza sempre a UTC.
+    SQLite (and some drivers) return naive datetimes even with ``timezone=True``:
+    this type always normalizes them to UTC.
     """
 
     impl = DateTime(timezone=True)
     cache_ok = True
 
     def process_bind_param(self, value: datetime | None, dialect: Any) -> datetime | None:
-        """Converte il valore in UTC prima di scriverlo sul database."""
+        """Convert the value to UTC before writing it to the database."""
         return as_utc(value)
 
     def process_result_value(self, value: datetime | None, dialect: Any) -> datetime | None:
-        """Restituisce il valore letto dal database come UTC timezone-aware."""
+        """Return the value read from the database as timezone-aware UTC."""
         return as_utc(value)

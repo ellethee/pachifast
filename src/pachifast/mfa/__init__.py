@@ -1,4 +1,4 @@
-"""Modulo MFA per pachifast — 2FA via TOTP, Email OTP, SMS OTP."""
+"""MFA module for pachifast: 2FA via TOTP, email OTP, SMS OTP."""
 
 import logging
 
@@ -10,14 +10,14 @@ log = logging.getLogger(__name__)
 
 
 async def _create_mfa_tables(app):
-    """Crea le tabelle MFA all'avvio senza richiedere Alembic."""
+    """Create the MFA tables at startup without requiring Alembic."""
     from pachifast.database.engine import get_auth_database_url, get_engine_from_url
 
     from .models import UserMfaConfig, UserMfaPendingChallenge
 
     database_url = get_auth_database_url(required=False)
     if not database_url:
-        log.warning("MFA: AUTH_DATABASE_URL non configurato, tabelle MFA non create")
+        log.warning("MFA: AUTH_DATABASE_URL not configured, MFA tables not created")
         return
 
     tables = [

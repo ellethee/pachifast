@@ -33,12 +33,12 @@ SettingValue = str | int | float | bool | None
 
 
 def normalize_username(username: str) -> str:
-    """Normalizza lo username: spazi rimossi e minuscolo."""
+    """Normalize the username: trimmed and lowercased."""
     return username.strip().lower()
 
 
 def normalize_email(email: str | None) -> str | None:
-    """Normalizza l'email (minuscolo, senza spazi); stringa vuota -> None."""
+    """Normalize the email (lowercase, trimmed); empty string -> None."""
     if email is None:
         return None
     email = email.strip().lower()
@@ -46,7 +46,7 @@ def normalize_email(email: str | None) -> str | None:
 
 
 def to_user_id(user_id: "uuid.UUID | str") -> uuid.UUID | None:
-    """Converte un valore in UUID; ritorna None se non e' un UUID valido."""
+    """Convert a value to a UUID; return None if it is not a valid UUID."""
     if isinstance(user_id, uuid.UUID):
         return user_id
     try:
@@ -56,19 +56,19 @@ def to_user_id(user_id: "uuid.UUID | str") -> uuid.UUID | None:
 
 
 async def get_users(session: AsyncSession) -> list[User]:
-    """Elenco di tutti gli utenti."""
+    """List of all users."""
     result = await session.execute(select(User))
     return list(result.scalars().all())
 
 
 async def get_user_by_username(session: AsyncSession, username: str) -> User | None:
-    """Cerca un utente per username (case-insensitive)."""
+    """Look up a user by username (case-insensitive)."""
     result = await session.execute(select(User).where(User.username == normalize_username(username)))
     return result.scalar_one_or_none()
 
 
 async def get_user_by_id(session: AsyncSession, user_id: "uuid.UUID | str") -> User | None:
-    """Cerca un utente per id (UUID o sua rappresentazione stringa)."""
+    """Look up a user by id (UUID or its string representation)."""
     uid = to_user_id(user_id)
     if uid is None:
         return None
@@ -259,10 +259,10 @@ async def get_user_settings(
     session: AsyncSession,
     user_id: uuid.UUID,
 ) -> object:
-    """Carica i settings utente dal DB e li deserializza nel modello dinamico.
+    """Load the user settings from the DB and deserialize them into the dynamic model.
 
-    Se la riga non esiste restituisce il modello con tutti i default.
-    I computed_field (es. route, title, icon) sono calcolati automaticamente e non vengono letti dal DB.
+    If the row does not exist, return the model with all defaults.
+    computed_field values (e.g. route, title, icon) are computed automatically and not read from the DB.
     """
     result = await session.execute(select(UserSettingsTable).where(UserSettingsTable.user_id == user_id))
     row = result.scalar_one_or_none()
@@ -295,12 +295,12 @@ async def update_user_settings(
     key: str,
     value: SettingValue,
 ) -> object:
-    """Aggiorna un singolo setting utente e salva nel DB.
+    """Update a single user setting and save it to the DB.
 
-    Carica i settings esistenti, aggiorna il valore specificato, e salva tutto come JSON.
-    I computed_field (es. route, title, icon) sono esclusi dalla serializzazione e non vengono salvati nel DB.
-    Il valore e' validato contro il campo (tipo, ``Literal``, ``ge``/``le``...): se non passa solleva
-    ``user.settings_value_invalid`` e nulla viene salvato.
+    Load the existing settings, update the given value, and save everything as JSON.
+    computed_field values (e.g. route, title, icon) are excluded from serialization and not saved to the DB.
+    The value is validated against the field (type, ``Literal``, ``ge``/``le``...): if it fails it raises
+    ``user.settings_value_invalid`` and nothing is saved.
     """
     return await update_user_settings_bulk(session, user_id, {category: {key: value}})
 
@@ -310,7 +310,7 @@ async def update_user_settings_bulk(
     user_id: uuid.UUID,
     changes: dict[str, dict[str, SettingValue]],
 ) -> object:
-    """Applica piu' valori (``{sezione: {chiave: valore}}``) con un solo salvataggio: o tutti o nessuno."""
+    """Apply several values (``{section: {key: value}}``) with a single save: all or nothing."""
     settings = await get_user_settings(session, user_id)
     for category, values in changes.items():
         section = getattr(settings, category, None)
@@ -335,15 +335,15 @@ def _resolve_setting_key(section: object, category: str, key: str) -> str:
 
 
 def dump_settings_values(instance: object) -> dict:
-    """Serializza solo i valori dei settings, escludendo computed_field a tutti i livelli.
+    """Serialize only the settings values, excluding computed_field at every level.
 
-    Esclude sia i computed_field del modello top-level sia quelli delle sezioni annidate
-    (es. route, title, icon definiti come @computed_field in BaseUserSettings).
+    Excludes both the computed_field of the top-level model and those of nested sections
+    (e.g. route, title, icon defined as @computed_field in BaseUserSettings).
     """
     model_cls = type(instance)
-    # Computed field del modello radice (di solito vuoto per UserSettings)
+    # Computed fields of the root model (usually empty for UserSettings)
     top_exclude: set[str] = set(model_cls.model_computed_fields)  # type: ignore[union-attr]
-    # Computed field delle sezioni annidate
+    # Computed fields of nested sections
     nested_exclude: dict[str, set[str]] = {}
     for section_name, field_info in model_cls.model_fields.items():  # type: ignore[union-attr]
         section_cls = field_info.annotation
@@ -359,7 +359,7 @@ async def save_user_settings(
     user_id: uuid.UUID,
     instance: object,
 ) -> None:
-    """Salva i settings utente nel DB escludendo i computed_field a tutti i livelli."""
+    """Save the user settings to the DB, excluding computed_field at every level."""
     data = dump_settings_values(instance)
 
     result = await session.execute(select(UserSettingsTable).where(UserSettingsTable.user_id == user_id))
@@ -372,15 +372,15 @@ async def save_user_settings(
 
 
 async def create_user(session: AsyncSession, user_in: UserCreate, *, check_password_policy: bool = True) -> User:
-    """Crea un utente con password hashata Argon2id.
+    """Create a user with an Argon2id-hashed password.
 
     Args:
-        session: sessione DB.
-        user_in: dati del nuovo utente.
-        check_password_policy: se False salta la lunghezza minima (uso CLI ``--force``).
+        session: DB session.
+        user_in: data of the new user.
+        check_password_policy: if False, skip the minimum length (CLI ``--force`` usage).
 
     Raises:
-        ValueError: password non conforme alla policy oppure username/email gia' esistenti.
+        ValueError: password violates the policy, or username/email already exist.
     """
     from .security import hash_password, validate_password_policy  # lazy import
 
@@ -430,7 +430,7 @@ async def update_user(
     e sblocca l'account.
 
     Raises:
-        ValueError: password non conforme oppure email gia' in uso.
+        ValueError: password violates the policy, or email already in use.
     """
     from .security import hash_password, validate_password_policy  # lazy import
 
@@ -471,7 +471,7 @@ async def update_user(
 
 
 async def _table_exists(session: AsyncSession, table_name: str) -> bool:
-    """True se la tabella esiste nel database della sessione."""
+    """True if the table exists in the session's database."""
     from sqlalchemy import inspect
 
     connection = await session.connection()
@@ -479,12 +479,12 @@ async def _table_exists(session: AsyncSession, table_name: str) -> bool:
 
 
 async def delete_user(session: AsyncSession, user_id: "uuid.UUID | str") -> bool:
-    """Elimina un utente (le tabelle collegate cadono in cascata). False se non esiste."""
+    """Delete a user (related tables are removed in cascade). False if it does not exist."""
     user = await get_user_by_id(session, user_id)
     if user is None:
         return False
-    # Cancellazione esplicita dei dati collegati: non dipende dal supporto FK del database (es. SQLite).
-    # Le tabelle MFA non sono nelle migrazioni del core: se mancano (MFA mai attivato) non c'e' nulla da cancellare.
+    # Explicitly delete related data: does not depend on the database's FK support (e.g. SQLite).
+    # The MFA tables are not in the core migrations: if missing (MFA never enabled) there is nothing to delete.
     from pachifast.mfa.models import UserMfaConfig, UserMfaPendingChallenge
 
     for model in (UserGroup, UserPermission, UserSettingsTable):
@@ -502,6 +502,6 @@ async def get_settings_schema():
 
 
 async def get_first_superuser(session: AsyncSession) -> User | None:
-    """Ritorna il primo superuser attivo trovato nel DB."""
+    """Return the first active superuser found in the DB."""
     result = await session.execute(select(User).where(User.is_superuser.is_(True), User.is_active.is_(True)).limit(1))
     return result.scalar_one_or_none()

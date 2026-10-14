@@ -88,11 +88,11 @@ async def logout(
     session: CoreSessionDep,
     payload: Annotated[RefreshToken | None, Body()] = None,
 ) -> Response:
-    """Esce: revoca i refresh token ed emette l'evento ``logout`` (stesso schema di ``login``).
+    """Log out: revokes the refresh tokens and emits the ``logout`` event (same schema as ``login``).
 
-    Con ``{"refresh_token": ...}`` revoca il login di quel token; senza corpo revoca tutti i login dell'utente.
-    L'access token non e' revocabile (e' senza stato): resta valido fino alla scadenza, che e' breve. Il client
-    deve scartare entrambi i token.
+    With ``{"refresh_token": ...}`` it revokes that token's login; without a body it revokes all the user's logins.
+    The access token cannot be revoked (it is stateless): it stays valid until it expires, which is soon. The client
+    must discard both tokens.
     """
     from pachifast.events import broadcast_event
 
@@ -120,10 +120,10 @@ async def logout(
 
 @router.post("/refresh-token", response_model=TokenResponse, skip_envelope=not core_settings.wrap_auth_token_response)
 async def refresh_access_token(payload: RefreshToken, session: CoreSessionDep):
-    """Emette un nuovo access token da un refresh token valido (utente esistente e attivo).
+    """Issues a new access token from a valid refresh token (existing, active user).
 
-    Con ``refresh_token_rotation`` (default) risponde anche con un nuovo refresh token e quello presentato non
-    vale piu'; ripresentarlo revoca l'intero login.
+    Con ``refresh_token_rotation`` (default) also returns a new refresh token and the presented one is no
+    longer valid; presenting it again revokes the whole login.
     """
     try:
         token_payload = decode_refresh_payload(payload.refresh_token)
@@ -158,7 +158,7 @@ async def register(
 ):
     if not get_settings().registration_enabled:
         raise api_error(status.HTTP_403_FORBIDDEN, "auth.registration_disabled", loc=("body",))
-    # Endpoint pubblico: mai concedere privilegi da input non autenticato.
+    # Public endpoint: never grant privileges from unauthenticated input.
     user_in = user_in.model_copy(update={"is_superuser": False, "is_staff": False, "is_active": True})
     existing_user = await get_user_by_username(session, normalize_username(user_in.username))
     if existing_user:

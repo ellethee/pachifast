@@ -50,8 +50,10 @@ class AppModule:
     startup_hooks: tuple[Hook, ...] = ()
     shutdown_hooks: tuple[Hook, ...] = ()
     lifespan_hooks: tuple[LifespanHook, ...] = ()
-    scan_dirs: tuple[str, ...] = ()  # dir da scansionare con file-scan (alternativa a router_modules)
-    locale_package: str | None = None  # pacchetto con i messaggi (<lingua>.py con MESSAGES), es. "apps.billing.locale"
+    scan_dirs: tuple[str, ...] = ()  # dirs to scan with file-scan (alternative to router_modules)
+    locale_package: str | None = (
+        None  # package holding the messages (<language>.py with MESSAGES), e.g. "apps.billing.locale"
+    )
     #: versions of pachifast the module works with, a PEP 440 specifier such as ">=0.15,<0.16"; checked at startup
     requires_pachifast: str | None = None
 

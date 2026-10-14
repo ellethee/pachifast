@@ -1,4 +1,4 @@
-"""Modelli SQLAlchemy per utenti, gruppi e permessi (RBAC)."""
+"""SQLAlchemy models for users, groups and permissions (RBAC)."""
 
 import uuid
 from datetime import datetime
@@ -23,7 +23,7 @@ REFRESH_TOKEN_TABLE = settings.get_table_name("refresh_token")
 
 
 def _user_fk(*, primary_key: bool = False, unique: bool = False) -> Mapped[uuid.UUID]:
-    """Colonna FK UUID verso la tabella utenti (ON DELETE CASCADE)."""
+    """UUID FK column pointing to the users table (ON DELETE CASCADE)."""
     return mapped_column(
         Uuid,
         ForeignKey(f"{USER_TABLE}.id", ondelete="CASCADE"),
@@ -34,7 +34,7 @@ def _user_fk(*, primary_key: bool = False, unique: bool = False) -> Mapped[uuid.
 
 
 class User(Base):
-    """Account utente. La password e' salvata solo come hash PHC (Argon2id)."""
+    """User account. The password is stored only as a PHC hash (Argon2id)."""
 
     __tablename__ = USER_TABLE
 
@@ -57,7 +57,7 @@ class User(Base):
 
 
 class UserSettingsTable(Base):
-    """Impostazioni utente serializzate come JSON."""
+    """User settings serialized as JSON."""
 
     __tablename__ = USER_SETTINGS_TABLE
 
@@ -76,7 +76,7 @@ class Permission(Base):
 
 
 class Group(Base):
-    """Gruppo: insieme di permessi assegnabile a piu' utenti."""
+    """Group: a set of permissions that can be assigned to several users."""
 
     __tablename__ = GROUP_TABLE
 
@@ -101,7 +101,7 @@ class GroupPermission(Base):
 
 
 class UserGroup(Base):
-    """Associazione utente-gruppo."""
+    """User-group association."""
 
     __tablename__ = USER_GROUP_TABLE
 
@@ -112,7 +112,7 @@ class UserGroup(Base):
 
 
 class UserPermission(Base):
-    """Permesso assegnato direttamente all'utente (override)."""
+    """Permission assigned directly to the user (override)."""
 
     __tablename__ = USER_PERMISSION_TABLE
 

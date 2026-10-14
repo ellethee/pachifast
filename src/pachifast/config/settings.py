@@ -41,9 +41,9 @@ class _PachifastMeta(type(BaseSettings)):
 
 
 class PachifastSettingsBase(BaseSettings, metaclass=_PachifastMeta):
-    """Base condivisa per tutte le Settings (progetto ed app): meccanismo `_env_prefix` +
-    default comuni (`env_file`, `extra`). Nessun campo business — lo eredita chi ne ha
-    bisogno da `PachifastSettings` sotto, le Settings per-app derivano direttamente da qui."""
+    """Shared base for all Settings (project and app): the `_env_prefix` mechanism +
+    common defaults (`env_file`, `extra`). No business fields: whoever needs them
+    inherits from `PachifastSettings` below, per-app Settings derive directly from here."""
 
     model_config = SettingsConfigDict(
         env_prefix="PACHIFAST_",
@@ -87,8 +87,8 @@ class ServerSettings(PachifastSettingsBase):
 
 
 class PachifastSettings(ServerSettings):
-    # Ripristina il comportamento storico (nessun filtro per prefisso) per la Settings di
-    # progetto: qui è voluto leggere anche variabili extra senza il proprio prefisso.
+    # Restores the historical behaviour (no prefix filter) for the project Settings:
+    # here reading extra variables without the own prefix is intended.
     model_config = SettingsConfigDict(dotenv_filtering=None, extra="allow")
 
     app_name: str = "PachiFast"
@@ -107,9 +107,9 @@ class PachifastSettings(ServerSettings):
     AUTH_DATABASE_URL: str = ""
     auto_create_auth_schema: bool = False
     api_v1_prefix: str = ""
-    # spento di default: con debug=True Starlette mostra il traceback (percorsi del server inclusi) ai client
+    # off by default: with debug=True Starlette shows the traceback (server paths included) to clients
     debug: bool = False
-    # livello dei log dell'applicazione (CRITICAL..DEBUG); vuoto: DEBUG con debug=true, altrimenti INFO
+    # application log level (CRITICAL..DEBUG); empty: DEBUG with debug=true, otherwise INFO
     log_level: str = ""
     # "text" (coloured, for a terminal) or "json" (one object per line, for a log collector)
     log_format: Literal["text", "json"] = "text"
@@ -126,8 +126,8 @@ class PachifastSettings(ServerSettings):
     # serve the Swagger UI (/docs, /docs/core) and the OpenAPI schemas (/api/v1/openapi*.json); off for a public API
     docs_enabled: bool = True
     expose_response_database: bool = False
-    # false = le risposte JSON restano senza envelope {success,message,data} (il frontend deve essere
-    # configurato di conseguenza)
+    # false = JSON responses stay without the {success,message,data} envelope (the frontend must be
+    # configured accordingly)
     envelope_enabled: bool = True
     wrap_auth_token_response: bool = False
     activity_log_enabled: bool = False
@@ -135,31 +135,31 @@ class PachifastSettings(ServerSettings):
     # days `pachifast audit purge` keeps when it is run without --days; 0 = it needs --days
     activity_log_retention_days: int = Field(default=0, ge=0)
     events_broadcast_enabled: bool = False
-    # accetta ancora l'access token in query string (/ws?token=): finisce nei log di proxy e di accesso; con False
-    # si entra solo con un ticket monouso (POST /api/core/events/ticket, poi /ws?ticket=)
+    # still accept the access token in the query string (/ws?token=): it ends up in proxy and access logs; with False
+    # only a single-use ticket gets in (POST /api/core/events/ticket, then /ws?ticket=)
     events_allow_query_token: bool = False
-    # dove stanno i ticket del WebSocket: "database" (default, condiviso tra worker e host) o "cache" (vedi cache_url)
+    # where the WebSocket tickets live: "database" (default, shared across workers and hosts) or "cache" (see cache_url)
     events_ticket_store: Literal["database", "cache"] = "database"
-    # tipi di evento inviati a TUTTI i client connessi (default: nessuno, solo superuser e utente interessato);
-    # es. "login" per mostrare chi si è collegato. Lista separata da virgola.
+    # event types sent to ALL connected clients (default: none, only superusers and the user concerned);
+    # e.g. "login" to show who has connected. Comma-separated list.
     events_public_types: Annotated[list[str], NoDecode] = Field(default_factory=list)
-    # cache con scadenza (ora: stato dell'activity log per utente, ticket se events_ticket_store="cache"):
-    # vuota = in memoria del processo (limitata a cache_max_entries voci, non condivisa tra worker);
-    # redis://... / rediss://... = Redis condiviso (serve pachifast[redis]);
-    # cache_prefix separa più app sullo stesso Redis
+    # cache with expiry (currently: per-user activity log state, tickets if events_ticket_store="cache"):
+    # empty = in the process memory (limited to cache_max_entries items, not shared across workers);
+    # redis://... / rediss://... = shared Redis (needs pachifast[redis]);
+    # cache_prefix separates several apps on the same Redis
     cache_url: str = ""
     cache_prefix: str = "pachifast:"
     cache_max_entries: int = 10_000
-    # lingua dei messaggi di errore dell'API (vedi i18n/catalogs.py); use_accept_language fa scegliere la lingua
-    # alla richiesta con l'header Accept-Language (se supportata), altrimenti vale sempre default_locale
+    # language of the API error messages (see i18n/catalogs.py); use_accept_language lets the request choose the
+    # language with the Accept-Language header (if supported), otherwise default_locale always applies
     default_locale: str = "en"
     use_accept_language: bool = False
     project_name: str = ""
     version: str = ""
     description: str = ""
 
-    # router/rotte da non montare (liste separate da virgola, vedi routing/core_filters.py):
-    # disable_* vale per tutti i moduli (core, apps, common), disable_core_* solo per il core
+    # routers/routes not to mount (comma-separated lists, see routing/core_filters.py):
+    # disable_* applies to all modules (core, apps, common), disable_core_* only to the core
     disable_routers: Annotated[list[str], NoDecode] = Field(default_factory=list)
     disable_routes: Annotated[list[str], NoDecode] = Field(default_factory=list)
     disable_core_routers: Annotated[list[str], NoDecode] = Field(default_factory=list)
@@ -191,7 +191,7 @@ class PachifastSettings(ServerSettings):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value
 
-    # auth: sicurezza account
+    # auth: account security
     password_min_length: int = 12
     login_max_attempts: int = 5
     # requests per client address and window on login, registration and the MFA check; 0 = no limit
@@ -199,7 +199,7 @@ class PachifastSettings(ServerSettings):
     auth_rate_window_seconds: int = Field(default=60, ge=1)
     login_lockout_minutes: int = 15
 
-    # nomi tabelle: prefisso comune + override singoli (stringa vuota = "prefisso + nome base")
+    # table names: common prefix + single overrides (empty string = "prefix + base name")
     table_prefix: str = "pachifast_"
     user_table: str = ""
     user_settings_table: str = ""
@@ -247,7 +247,7 @@ class PachifastSettings(ServerSettings):
 
     @model_validator(mode="after")
     def _require_secret_key(self) -> "PachifastSettings":
-        """Impone una SECRET_KEY esplicita (nessun valore di default insicuro)."""
+        """Enforce an explicit SECRET_KEY (no insecure default value)."""
         if not self.SECRET_KEY:
             raise ValueError(
                 "SECRET_KEY is not set: set the PACHIFAST_SECRET_KEY environment variable "
@@ -259,10 +259,10 @@ class PachifastSettings(ServerSettings):
         return self
 
     def get_table_name(self, base_name: str) -> str:
-        """Nome effettivo di una tabella: override ``<base>_table`` oppure ``table_prefix + base``.
+        """Effective name of a table: the ``<base>_table`` override or ``table_prefix + base``.
 
         Args:
-            base_name: nome base (es. ``user``, ``user_settings``, ``mfa_config``, ``activity_log``).
+            base_name: base name (e.g. ``user``, ``user_settings``, ``mfa_config``, ``activity_log``).
         """
         override = {
             "user": self.user_table,
@@ -283,11 +283,11 @@ _settings_factory: Callable[[], PachifastSettings] | None = None
 
 
 def configure_settings(factory: Callable[[], PachifastSettings]) -> None:
-    """Registra una factory esterna per get_settings().
+    """Register an external factory for get_settings().
 
-    Permette ai progetti host di fornire una propria implementazione
-    di Settings (con prefix diverso, campi extra, ecc.) senza modificare pachifast.
-    Chiamare prima di creare l'app WSGI/ASGI.
+    Lets host projects provide their own Settings implementation
+    (with a different prefix, extra fields, etc.) without modifying pachifast.
+    Call before creating the WSGI/ASGI app.
     """
     global _settings_factory
     _settings_factory = factory

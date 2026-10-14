@@ -30,7 +30,7 @@ def camelize(obj):
         return obj
 
 
-# 1. Le funzioni di utilità per convertire in snake_case
+# 1. Utility functions to convert to snake_case
 def to_snake(s: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", s).lower()
 

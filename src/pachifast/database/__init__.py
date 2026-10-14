@@ -1,4 +1,4 @@
-"""Moduli per la gestione del database."""
+"""Database management modules."""
 
 from .aliased_models import AliasedBaseModel
 from .base import Base

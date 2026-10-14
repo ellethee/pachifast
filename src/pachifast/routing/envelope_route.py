@@ -11,12 +11,12 @@ from pachifast.schemas.responses import StandardResponse
 
 
 def _resolve_request_database(request: Request) -> list[str] | None:
-    """Database "business" della richiesta, con fallback sul database core/auth.
+    """The request's "business" database, falling back to the core/auth database.
 
-    request.state.database (popolata da add_request_database) esclude di proposito il
-    database auth/core, che gira sull'auth-check di quasi ogni richiesta e comparirebbe come
-    rumore. Se nessun database business è stato usato (endpoint che leggono/scrivono solo sul
-    database core), si torna a mostrare quello.
+    request.state.database (filled by add_request_database) deliberately excludes the
+    auth/core database, which runs on the auth check of almost every request and would show up as
+    noise. If no business database was used (endpoints that only read/write the
+    core database), that one is shown instead.
     """
     business = getattr(request.state, "database", None)
     if business:
@@ -26,22 +26,22 @@ def _resolve_request_database(request: Request) -> list[str] | None:
 
 
 class EnvelopeRoute(APIRoute):
-    """Avvolge ogni risposta JSON in StandardResponse (success/message/database/data).
+    """Wrap every JSON response in StandardResponse (success/message/database/data).
 
-    Il wrapping avviene DOPO che l'endpoint ha già serializzato il proprio response_model
-    naturale: non richiede che i singoli endpoint dichiarino StandardResponse[T] (pattern
-    fragile, vedi apps/portal/files.py). Risposte non-JSON (download, blob, streaming)
-    passano invariate. Una route dichiarata con skip_envelope=True (vedi
-    PermissionedRouter.add_api_route) salta del tutto il wrapping — usata per endpoint
-    che devono rispettare un contratto di risposta esterno (es. OAuth2 password grant).
+    Wrapping happens AFTER the endpoint has already serialized its own natural
+    response_model: endpoints do not need to declare StandardResponse[T] (a
+    fragile pattern). Non-JSON responses (downloads, blobs, streaming)
+    pass through unchanged. A route declared with skip_envelope=True (see
+    PermissionedRouter.add_api_route) skips the wrapping entirely, used for endpoints
+    that must honour an external response contract (e.g. the OAuth2 password grant).
 
-    Con ``envelope_enabled=false`` nessuna risposta viene avvolta: il frontend deve
-    essere configurato allo stesso modo (``expose_response_database`` non ha più effetto).
+    With ``envelope_enabled=false`` no response is wrapped: the frontend must be
+    configured the same way (``expose_response_database`` then has no effect).
 
-    Contratto (envelope attivo): l'envelope esiste solo sulle risposte 2xx e ha sempre
-    ``success: true``; un errore è sempre una risposta non-2xx con ``{"detail": [...]}``
-    (mai un 2xx con ``success: false``). Una risposta JSON non-2xx restituita direttamente
-    da un endpoint (``JSONResponse(status_code=400)``) passa quindi invariata, senza envelope.
+    Contract (envelope enabled): the envelope exists only on 2xx responses and always has
+    ``success: true``; an error is always a non-2xx response with ``{"detail": [...]}``
+    (never a 2xx with ``success: false``). A non-2xx JSON response returned directly
+    by an endpoint (``JSONResponse(status_code=400)``) therefore passes through unchanged, without an envelope.
     """
 
     def get_route_handler(self) -> Callable:

@@ -93,7 +93,8 @@ def test_github_workflow_is_valid_and_uses_ghcr(tmp_path: Path) -> None:
     root = _project(tmp_path)
     assert _pipeline(root, "--provider", "github").exit_code == 0
     workflow = yaml.safe_load((root / ".github/workflows/docker-image.yml").read_text(encoding="utf-8"))
-    assert workflow["permissions"] == {"contents": "read", "packages": "write"}
+    assert workflow["permissions"] == {"contents": "read"}
+    assert workflow["jobs"]["build"]["permissions"] == {"contents": "read", "packages": "write"}
     triggers = workflow.get("on") or workflow[True]  # YAML 1.1 reads a bare ``on`` as True
     assert triggers["push"]["branches"] == ["main"] and triggers["push"]["tags"] == ["v*"]
     text = (root / ".github/workflows/docker-image.yml").read_text(encoding="utf-8")

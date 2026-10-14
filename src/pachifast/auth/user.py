@@ -84,7 +84,7 @@ async def _save_profile(session: CoreSessionDep, user_id: Any, changes: dict[str
 
 @router.get(
     "/settings/schema",
-    summary="Schema UI per il rendering dei settings utente",
+    summary="UI schema for rendering the user settings",
 )
 async def user_settings_schema():
     return await cruds.get_settings_schema()

@@ -12,10 +12,10 @@ log = logging.getLogger(__name__)
 
 
 def scan_models(base_path: Path | str, scan_dirs: Iterable[str]) -> list[Table]:
-    """Importa file .py in scan_dirs e ritorna __table__ per i modelli ORM (``Base``) con __auto_create__ = True.
+    """Import .py files in scan_dirs and return __table__ for ORM models (``Base``) with __auto_create__ = True.
 
-    Usare __auto_create__ = True su una classe modello per includerla nella creazione automatica
-    delle tabelle al bootstrap dell'applicazione.
+    Set __auto_create__ = True on a model class to include it in the automatic
+    table creation at application bootstrap.
     """
     base_path = Path(base_path)
     tables: list[Table] = []
@@ -24,7 +24,7 @@ def scan_models(base_path: Path | str, scan_dirs: Iterable[str]) -> list[Table]:
     for d in scan_dirs:
         target = base_path / d
         if not target.exists():
-            log.debug("scan_models: directory %s non trovata, skip", target)
+            log.debug("scan_models: directory %s not found, skipping", target)
             continue
         for py_file in sorted(target.rglob("*.py")):
             if py_file.name.startswith("_"):

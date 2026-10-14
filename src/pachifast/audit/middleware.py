@@ -44,7 +44,7 @@ class _SafeFormatMap(dict):
 
 
 def _extract_user_from_request(request: Request) -> tuple[uuid.UUID | None, str | None]:
-    """Estrae user_id e username dal JWT senza query DB."""
+    """Extract user_id and username from the JWT without a DB query."""
     auth = request.headers.get("Authorization", "")
     if not auth.lower().startswith("bearer "):
         return None, None
@@ -59,7 +59,7 @@ def _extract_user_from_request(request: Request) -> tuple[uuid.UUID | None, str 
 
 
 async def _get_username(user_id: uuid.UUID) -> str | None:
-    """Recupera username dal DB (usato solo al cache miss)."""
+    """Fetch the username from the DB (used only on a cache miss)."""
     try:
         from pachifast.auth.cruds import get_user_by_id
         from pachifast.database.engine import get_core_sessionmaker
@@ -72,7 +72,7 @@ async def _get_username(user_id: uuid.UUID) -> str | None:
 
 
 async def _should_skip(user_id: uuid.UUID | None) -> bool:
-    """True solo se il superuser ha disable_activity_log=True (scelta ricordata ``_CACHE_TTL`` secondi nella cache)."""
+    """True only if the superuser has disable_activity_log=True (cached for ``_CACHE_TTL`` seconds)."""
     if user_id is None:
         return False
     from pachifast.cache import get_cache
@@ -109,7 +109,7 @@ async def _should_skip(user_id: uuid.UUID | None) -> bool:
 
 
 def _interpolate_log_as(template: str, path_params: dict, username: str | None, extra: dict | None = None) -> str:
-    """Interpola il template log_as con path_params, username e contesto extra dall'endpoint."""
+    """Interpolate the log_as template with path_params, username and extra context from the endpoint."""
     ctx: dict = {**path_params, **(extra or {})}
     if username:
         ctx["username"] = username

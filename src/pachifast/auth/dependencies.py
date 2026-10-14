@@ -120,7 +120,7 @@ async def get_current_ws_user(
     if user is None:
         raise WebSocketException(
             code=status.WS_1008_POLICY_VIOLATION,
-            reason="Utente non trovato",
+            reason="User not found",
         )
     return user
 
@@ -142,7 +142,7 @@ async def get_current_user_optional(
     session: Annotated[AsyncSession, Depends(get_core_session)],
     token: str | None = Depends(_oauth2_optional),
 ) -> User | None:
-    """Come get_current_user ma ritorna None invece di lanciare 401 se non autenticato."""
+    """Like get_current_user but returns None instead of raising 401 when not authenticated."""
     if token is None:
         return None
     from .security import decode_access_payload, ensure_token_not_revoked, subject_to_user_id
@@ -158,7 +158,7 @@ async def get_current_user_optional(
     return user
 
 
-# Tipi riutilizzabili per injection
+# Reusable types for injection
 CurrentUserDep = Depends(get_current_user)
 CurrentUserOptionalDep = Depends(get_current_user_optional)
 ActiveUserDep = Depends(get_current_active_user)
@@ -172,22 +172,22 @@ def make_permission_checker(
     require_staff: bool = False,
     require_superuser: bool = False,
 ) -> Callable:
-    """Factory che ritorna una dependency FastAPI per il controllo dei permessi.
+    """Factory returning a FastAPI dependency that checks permissions.
 
-    I superuser bypassano tutti i controlli.
-    L'ordine di verifica è: superuser → staff → permissions.
+    Superusers bypass all checks.
+    Check order: superuser → staff → permissions.
 
     Args:
-        permissions: lista di permission string che l'utente deve possedere.
-        require_staff: se True, l'utente deve avere is_staff=True.
-        require_superuser: se True, solo i superuser possono accedere.
+        permissions: list of permission strings the user must hold.
+        require_staff: if True, the user must have is_staff=True.
+        require_superuser: if True, only superusers may access.
     """
 
     async def check_permissions(
         user: Annotated[User, Depends(get_current_active_user)],
         session: Annotated[AsyncSession, Depends(get_core_session)],
     ) -> None:
-        # i superuser bypassa tutti i controlli
+        # superusers bypass all checks
         if user.is_superuser:
             return
         if require_superuser:
@@ -226,7 +226,7 @@ def make_ws_permission_checker(
         if require_staff and not user.is_staff:
             raise WebSocketException(
                 code=status.WS_1008_POLICY_VIOLATION,
-                reason="Accesso riservato allo staff",
+                reason="Staff access only",
             )
         if permissions and user.id is not None:
             user_perms = await resolve_user_permissions(session, user.id)

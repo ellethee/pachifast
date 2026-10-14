@@ -1,7 +1,7 @@
-"""MFA sender adapter — hook point per invio OTP via email e SMS.
+"""MFA sender adapter — hook point for sending OTPs via email and SMS.
 
-Per inviare gli OTP: subclassare MfaSenderAdapter e
-registrare la sottoclasse con configure_sender() prima di creare l'app.
+To send OTPs: subclass MfaSenderAdapter and
+register the subclass with configure_sender() before creating the app.
 """
 
 import logging
@@ -11,10 +11,10 @@ log = logging.getLogger(__name__)
 
 
 class MfaSenderAdapter:
-    """Adapter base per l'invio di OTP via email e SMS.
+    """Base adapter for sending OTPs via email and SMS.
 
-    L'implementazione di default è no-op con warning. L'app host deve
-    registrare una propria sottoclasse tramite configure_sender().
+    The default implementation is a no-op with a warning. The host app must
+    register its own subclass through configure_sender().
     """
 
     async def send_email_otp(
@@ -46,13 +46,13 @@ _sender_class: "type[MfaSenderAdapter] | None" = None
 
 
 def configure_sender(cls: "type[MfaSenderAdapter]") -> None:
-    """Registra una sottoclasse di MfaSenderAdapter come sender attivo."""
+    """Register a subclass of MfaSenderAdapter as the active sender."""
     global _sender_class
     _sender_class = cls
 
 
 def get_sender() -> MfaSenderAdapter:
-    """Restituisce il sender MFA attivo (no-op di default)."""
+    """Return the active MFA sender (no-op by default)."""
     if _sender_class is not None:
         return _sender_class()
     return MfaSenderAdapter()

@@ -22,7 +22,7 @@ def core_tables() -> list:
 
 
 async def init_db(*, extra_tables: list | None = None) -> None:
-    """Crea le tabelle auth/permessi sul database configurato, se disponibile.
+    """Create the auth/permission tables on the configured database, if available.
 
     extra_tables: tabelle SQLAlchemy aggiuntive da creare (es. da scan_models()).
     """

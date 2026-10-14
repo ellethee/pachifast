@@ -2,7 +2,7 @@
 
 # pachifast
 
-[Italiano](README.it.md)
+[Italiano](https://github.com/ellethee/pachifast/blob/main/README.it.md)
 
 An open-source framework for building [FastAPI](https://fastapi.tiangolo.com/) services with a modular structure, a CLI
 that scaffolds projects and modules, built-in authentication with roles and permissions, and multi-database Alembic
@@ -36,21 +36,20 @@ uv tool install pachifast
 pachifast --version
 ```
 
-In a project, `uv add pachifast` does the same. Or install from a release tag of the source (replace `vX.Y.Z` with a tag
-of the repository):
+In a project, `uv add pachifast` does the same. To install a specific version from PyPI (replace `X.Y.Z`):
 
 ```bash
-uv tool install "git+https://github.com/ellethee/pachifast@vX.Y.Z"
+uv tool install pachifast==X.Y.Z
 ```
 
 Redis cache support is an extra: `pachifast[redis]`; PostgreSQL is `pachifast[postgres]`. Supported databases: SQLite and
-PostgreSQL. See [Getting started](docs/getting-started.md) for more installation options.
+PostgreSQL. See [Getting started](https://pachifast.ilpachi.it/getting-started/) for more installation options.
 
 ## Stability
 
 pachifast is **alpha**: the API contract (response envelope, message codes) is protected by tests, but settings, CLI and
-the database schema of the core may change in any 0.x minor release, always announced in the [changelog](CHANGELOG.md)
-and in [Upgrading](docs/guides/upgrading.md). Details and the deprecation policy: [Stability](docs/guides/stability.md).
+the database schema of the core may change in any 0.x minor release, always announced in the [changelog](https://github.com/ellethee/pachifast/blob/main/CHANGELOG.md)
+and in [Upgrading](https://pachifast.ilpachi.it/guides/upgrading/). Details and the deprecation policy: [Stability](https://pachifast.ilpachi.it/guides/stability/).
 
 ## Quick start
 
@@ -65,7 +64,7 @@ Then open <http://127.0.0.1:8000/docs> (application endpoints) or <http://127.0.
 administration, health, version). Application routes require a bearer token by default: log in at
 `POST /api/auth/token`.
 
-Want to see a complete project first? [`examples/demo`](examples/demo) is a working backend (MFA, model admin, a module with
+Want to see a complete project first? [`examples/demo`](https://github.com/ellethee/pachifast/tree/main/examples/demo) is a working backend (MFA, model admin, a module with
 tables, uploads, bulk actions and per-user settings) that runs on SQLite with no external services.
 
 A project looks like this:
@@ -82,23 +81,23 @@ demo/
 
 ## Documentation
 
-The documentation is published at <https://pachifast.ilpachi.it/> and lives in [`docs/`](docs/index.md):
+The documentation is published at <https://pachifast.ilpachi.it/> and lives in [`docs/`](https://github.com/ellethee/pachifast/tree/main/docs):
 
-- [Getting started](docs/getting-started.md)
-- Guides: [configuration](docs/guides/configuration.md), [modules](docs/guides/modules.md),
-  [authentication](docs/guides/authentication.md), [routing and responses](docs/guides/routing-and-responses.md),
-  [errors and i18n](docs/guides/errors-and-i18n.md), [events](docs/guides/events.md), [cache](docs/guides/cache.md),
-  [database and migrations](docs/guides/database-and-migrations.md), [operations](docs/guides/operations.md),
-  [deployment](docs/guides/deployment.md), [publishing](docs/guides/publishing.md),
-  [frontend integration](docs/guides/frontend-integration.md)
-- Reference: [CLI](docs/reference/cli.md), [settings](docs/reference/settings.md),
-  [message codes](docs/reference/error-codes.md)
-- [Changelog](CHANGELOG.md) and [contributing](docs/contributing.md)
+- [Getting started](https://pachifast.ilpachi.it/getting-started/)
+- Guides: [configuration](https://pachifast.ilpachi.it/guides/configuration/), [modules](https://pachifast.ilpachi.it/guides/modules/),
+  [authentication](https://pachifast.ilpachi.it/guides/authentication/), [routing and responses](https://pachifast.ilpachi.it/guides/routing-and-responses/),
+  [errors and i18n](https://pachifast.ilpachi.it/guides/errors-and-i18n/), [events](https://pachifast.ilpachi.it/guides/events/), [cache](https://pachifast.ilpachi.it/guides/cache/),
+  [database and migrations](https://pachifast.ilpachi.it/guides/database-and-migrations/), [operations](https://pachifast.ilpachi.it/guides/operations/),
+  [deployment](https://pachifast.ilpachi.it/guides/deployment/), [publishing](https://pachifast.ilpachi.it/guides/publishing/),
+  [frontend integration](https://pachifast.ilpachi.it/guides/frontend-integration/)
+- Reference: [CLI](https://pachifast.ilpachi.it/reference/cli/), [settings](https://pachifast.ilpachi.it/reference/settings/),
+  [message codes](https://pachifast.ilpachi.it/reference/error-codes/)
+- [Changelog](https://github.com/ellethee/pachifast/blob/main/CHANGELOG.md) and [contributing](https://pachifast.ilpachi.it/contributing/)
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](https://github.com/ellethee/pachifast/blob/main/LICENSE).
 
 **Disclaimer.** pachifast is provided "as is", without warranty of any kind. It is alpha software: it can contain bugs
 and change incompatibly between minor releases. You are responsible for reviewing, testing and securing the
-applications you build with it before using them in production. See the [stability policy](docs/guides/stability.md).
+applications you build with it before using them in production. See the [stability policy](https://pachifast.ilpachi.it/guides/stability/).

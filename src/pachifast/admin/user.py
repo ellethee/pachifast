@@ -1,4 +1,4 @@
-"""Routes :mod:`admin.user`: gestione utenti (solo superuser)."""
+"""Routes :mod:`admin.user`: user management (superusers only)."""
 
 import uuid
 from typing import Annotated
@@ -23,7 +23,7 @@ router = get_router(require_superuser=True)
 
 
 def _not_found() -> HTTPException:
-    """Errore 404 uniforme per utente inesistente."""
+    """Uniform 404 error for a nonexistent user."""
     return api_error(status.HTTP_404_NOT_FOUND, "user.not_found", loc=("path", "user_id"))
 
 
@@ -33,7 +33,7 @@ async def list_users(
     user: Annotated[UserRead, CurrentUserDep],
     paginateParams: Annotated[UserPaginted, Query()],
 ):
-    """Elenco paginato degli utenti (default: piu' recenti prima)."""
+    """Paginated list of users (default: most recent first)."""
     if not paginateParams.orderBy:
         paginateParams.orderBy = "-created_at"
     return await paginate(
@@ -49,7 +49,7 @@ async def get_user(
     session: CoreSessionDep,
     user: Annotated[UserRead, CurrentUserDep],
 ):
-    """Dettaglio di un utente."""
+    """User detail."""
     found = await cruds.get_user_by_id(session, user_id)
     if found is None:
         raise _not_found()
@@ -62,7 +62,7 @@ async def delete_user(
     session: CoreSessionDep,
     user: Annotated[UserRead, CurrentUserDep],
 ):
-    """Elimina un utente. Un superuser non puo' eliminare se stesso."""
+    """Delete a user. A superuser cannot delete themselves."""
     if user_id == user.id:
         raise api_error(status.HTTP_400_BAD_REQUEST, "user.cannot_delete_self", loc=("path", "user_id"))
     if not await cruds.delete_user(session, user_id):
@@ -78,7 +78,7 @@ async def update_user(
     session: CoreSessionDep,
     user: Annotated[UserRead, CurrentUserDep],
 ):
-    """Aggiorna i campi indicati di un utente (nome, email, password, flag)."""
+    """Update the given fields of a user (name, email, password, flags)."""
     target = await cruds.get_user_by_id(session, user_id)
     if target is None:
         raise _not_found()

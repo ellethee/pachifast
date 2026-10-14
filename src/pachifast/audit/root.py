@@ -35,17 +35,17 @@ class ActivityLogRead(BaseModel):
 class ActivityLogPageParams(PageParams):
     search_fields = ["username", "path"]
 
-    orderBy: str | None = Query("-timestamp", description="Campo per l'ordinamento (default: -timestamp)")
-    user_id: uuid.UUID | None = Query(None, description="Filtra per ID utente")
+    orderBy: str | None = Query("-timestamp", description="Field to sort by (default: -timestamp)")
+    user_id: uuid.UUID | None = Query(None, description="Filter by user ID")
     method: str | None = Query(None, description="Metodo HTTP: POST, PUT, PATCH, DELETE")
-    status_code: int | None = Query(None, description="Filtra per status code HTTP")
+    status_code: int | None = Query(None, description="Filter by HTTP status code")
     date_from: datetime | None = Query(None, description="Timestamp minimo (incluso)")
     date_to: datetime | None = Query(None, description="Timestamp massimo (incluso)")
     path_contains: str | None = Query(None, description="Filtra percorsi che contengono la stringa")
     exclude_paths: str | None = Query(
         None,
-        description="Pattern da escludere (virgola-separati). Assente: il setting activity_log_exclude_paths. "
-        "Stringa vuota per disabilitare.",
+        description="Patterns to exclude (comma-separated). Omitted: the activity_log_exclude_paths setting. "
+        "Empty string to disable.",
     )
 
     @model_validator(mode="after")
@@ -80,7 +80,7 @@ def _activity_log_filter(params: ActivityLogPageParams, filter_kwargs: dict, stm
     return filter_kwargs, stmt
 
 
-@router.get("/logs", response_model=PaginatedResponse[ActivityLogRead], summary="Lista log attività")
+@router.get("/logs", response_model=PaginatedResponse[ActivityLogRead], summary="List activity logs")
 async def list_activity_logs(
     session: CoreSessionDep,
     params: Annotated[ActivityLogPageParams, Query()],
@@ -93,7 +93,7 @@ async def list_activity_logs(
     )
 
 
-@router.get("/activity", response_model=list[ActivityLogRead], summary="Attività recenti")
+@router.get("/activity", response_model=list[ActivityLogRead], summary="Recent activity")
 async def recent_activity(
     session: CoreSessionDep,
     filters: Annotated[ActivityFilters, Depends()],

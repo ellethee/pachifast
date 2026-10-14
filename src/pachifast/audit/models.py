@@ -1,4 +1,4 @@
-"""Modello del log delle attivita'."""
+"""Activity log model."""
 
 import uuid
 from datetime import datetime
@@ -23,7 +23,7 @@ class ActivityLog(Base):
 
     id: Mapped[int | None] = mapped_column(primary_key=True, default=None, nullable=False)
     timestamp: Mapped[datetime] = mapped_column(UtcDateTime, index=True, default_factory=utcnow)
-    # Nessuna FK: il log sopravvive alla cancellazione dell'utente (username denormalizzato).
+    # No FK: the log outlives the user's deletion (denormalized username).
     user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, index=True, default=None)
     username: Mapped[str | None] = mapped_column(String(150), default=None)
     method: Mapped[str] = mapped_column(String(10))

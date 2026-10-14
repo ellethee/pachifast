@@ -30,7 +30,7 @@ def get_router(
     if mod is None:
         raise ValueError("Module not found")
 
-    # Ricava il nome base del modulo e rimuovi "main" o "__init__" se presenti
+    # Derive the base module name and drop "root", "main" or "__init__" if present
     full_path = mod.__name__.split(".")
     clean_parts = [p for p in full_path[-parts:] if p not in ("root", "main", "__init__")]
 
@@ -43,7 +43,7 @@ def get_router(
         log.warning("Router %s: global_noauth enabled, skipping authentication", name)
         deps.append("noauth")
 
-    # Costruisce le dipendenze
+    # Build the dependencies
     local_deps = []
     auth_deps: list = []
     for dep in deps:

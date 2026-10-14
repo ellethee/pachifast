@@ -4,7 +4,6 @@ from logging import getLogger
 log = getLogger(__name__)
 
 DEFAULT_EXECUTE_PARAMS = dict(
-    use_shell=False,
     stdin=False,
     stdout=True,
     stderr=False,
@@ -35,7 +34,7 @@ def sys_execute(program: str, *args, **kwargs) -> subprocess.CompletedProcess:
             cmd,
             text=True,
             capture_output=True,
-            shell=exec_kwargs["use_shell"],
+            shell=False,
             check=False,
         )
         log.debug("Return code: %s", result.returncode)

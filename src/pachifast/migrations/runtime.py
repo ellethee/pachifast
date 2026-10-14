@@ -36,7 +36,7 @@ class LoadedMigrationTarget:
 
     @property
     def version_table(self) -> str:
-        """Nome della tabella di versione Alembic (override del target o ``<table_prefix>alembic_version_<target>``)."""
+        """Name of the Alembic version table (target override or ``<table_prefix>alembic_version_<target>``)."""
         if self.target.version_table:
             return self.target.version_table
         return f"{get_settings().table_prefix}alembic_version_{self.target.name}"

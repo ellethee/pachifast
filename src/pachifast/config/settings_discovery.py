@@ -10,7 +10,7 @@ def discover_app_settings(
     scan_dirs: tuple[str, ...] = ("apps", "common"),
     root: Path | None = None,
 ) -> None:
-    """Importa settings.py da `scan_dirs` e li integra nella configurazione globale."""
+    """Import settings.py from `scan_dirs` and merge them into the global configuration."""
     rootpath = Path(root or Path.cwd())
 
     for folder in scan_dirs:

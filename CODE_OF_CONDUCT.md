@@ -7,4 +7,4 @@ This project follows the spirit of the [Contributor Covenant](https://www.contri
 - Assume good faith and keep discussions on topic.
 
 The maintainer may edit or remove comments, issues and contributions that break these rules, and may block
-repeat offenders. Report problems privately to the maintainer, as described in [SECURITY.md](SECURITY.md).
+repeat offenders. Report problems privately to the maintainer at **ilpachi@ilpachi.it**.
