@@ -16,6 +16,7 @@ os.environ.setdefault("PACHIFAST_SECRET_KEY", "x" * 40)
 
 from pachifast.cli.app import app  # noqa: E402
 from pachifast.config.schema import build_config_schema  # noqa: E402
+from pachifast.config.sections import SECTIONS  # noqa: E402
 from pachifast.i18n.locale import en, it  # noqa: E402
 
 REFERENCE_DIR = Path(__file__).resolve().parent.parent / "docs" / "reference"
@@ -59,18 +60,24 @@ def settings_page() -> str:
         BANNER,
         "# Settings reference\n",
         _for_version(),
-        "Every setting can be given as a key of `pachifast.yaml` (case-insensitive), as an environment variable "
-        "`PACHIFAST_<NAME>` or in `.env`; see [Configuration](../guides/configuration.md) for the priority between "
-        "sources. A [JSON Schema](pachifast.schema.json) of the file is available for editors.\n",
-        "| Setting | Type | Default | Description |",
-        "| --- | --- | --- | --- |",
+        "Every setting can be given in a section of `pachifast.yaml` (`section.key`, case-insensitive), as an "
+        "environment variable `PACHIFAST_<NAME>` or in `.env`; see "
+        "[Configuration](../guides/configuration.md) for the priority between sources. "
+        "A [JSON Schema](pachifast.schema.json) of the file is available for editors.\n",
+        "| Setting | YAML | Environment variable | Type | Default | Description |",
+        "| --- | --- | --- | --- | --- | --- |",
     ]
-    for name, prop in schema["properties"].items():
-        default = prop.get("default", "")
-        if isinstance(default, bool):
-            default = str(default).lower()
-        shown = "" if default in ("", [], None) else f"`{default}`"
-        lines.append(f"| `{name}` | {_type_name(prop)} | {_cell(shown)} | {_cell(prop.get('description', ''))} |")
+    for section, section_schema in schema["properties"].items():
+        lines.append(f"| **{section}** | | | | | {_cell(section_schema.get('description', ''))} |")
+        for (key, field), prop in zip(SECTIONS[section], section_schema["properties"].values(), strict=True):
+            default = prop.get("default", "")
+            if isinstance(default, bool):
+                default = str(default).lower()
+            shown = "" if default in ("", [], None) else f"`{default}`"
+            lines.append(
+                f"| `{field}` | `{section}.{key}` | `PACHIFAST_{field.upper()}` | {_type_name(prop)} | "
+                f"{_cell(shown)} | {_cell(prop.get('description', ''))} |"
+            )
     return "\n".join(lines) + "\n"
 
 

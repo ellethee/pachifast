@@ -5,77 +5,89 @@
 
 Generated for pachifast **0.15.0**.
 
-Every setting can be given as a key of `pachifast.yaml` (case-insensitive), as an environment variable `PACHIFAST_<NAME>` or in `.env`; see [Configuration](../guides/configuration.md) for the priority between sources. A [JSON Schema](pachifast.schema.json) of the file is available for editors.
+Every setting can be given in a section of `pachifast.yaml` (`section.key`, case-insensitive), as an environment variable `PACHIFAST_<NAME>` or in `.env`; see [Configuration](../guides/configuration.md) for the priority between sources. A [JSON Schema](pachifast.schema.json) of the file is available for editors.
 
-| Setting | Type | Default | Description |
-| --- | --- | --- | --- |
-| `access_token_expire_minutes` | integer | `30` | Lifetime of an access token, in minutes. |
-| `activity_log_enabled` | boolean | `false` | Record POST/PUT/PATCH/DELETE requests in the activity log and expose it. |
-| `activity_log_exclude_paths` | string | `refresh-token` | Comma-separated path fragments that are never logged. |
-| `activity_log_retention_days` | integer | `0` | Days of activity log that `pachifast audit purge` keeps; 0 needs --days. |
-| `activity_log_table` | string |  | Name of the activity log table (empty: table_prefix + activity_log). |
-| `algorithm` | `HS256` \| `HS384` \| `HS512` | `HS256` | JWT signing algorithm. |
-| `api_v1_prefix` | string |  | Prefix added to every API route. |
-| `app_name` | string | `PachiFast` | Name of the application, shown in the OpenAPI documentation. |
-| `auth_database_url` | string |  | SQLAlchemy URL of the authentication database (users, groups, permissions). Prefer the environment variable or the .env file: do not commit it. |
-| `auth_rate_limit` | integer | `0` | Requests per client address and window on login, registration and MFA check; 0 is no limit. |
-| `auth_rate_window_seconds` | integer | `60` | Length of the window of auth_rate_limit, in seconds. |
-| `auto_create_auth_schema` | boolean | `false` | Create the auth tables at startup instead of using Alembic migrations. |
-| `cache_max_entries` | integer | `10000` | Maximum entries of the in-process cache. |
-| `cache_prefix` | string | `pachifast:` | Prefix of the cache keys, to share one Redis between applications. |
-| `cache_url` | string |  | Empty: in-process cache. redis://, rediss:// or unix:// URL: shared Redis (needs pachifast[redis]). |
-| `database_url` | string |  | SQLAlchemy URL of the main database (async driver, e.g. postgresql+asyncpg://...). Prefer the environment variable or the .env file: do not commit it. |
-| `db_max_overflow` | integer | `10` | Extra connections allowed above db_pool_size under load, per process. |
-| `db_pool_recycle` | integer | `1800` | Seconds after which a connection is replaced; -1 never. |
-| `db_pool_size` | integer | `5` | Connections a server database (PostgreSQL) keeps open, per process. |
-| `db_pool_timeout` | integer | `30` | Seconds a request waits for a free connection before it fails. |
-| `dbdebug` | boolean | `false` | Log the SQL statements. |
-| `debug` | boolean | `false` | Show the traceback page to clients on errors: development only, off by default. |
-| `default_locale` | string | `en` | Language of the API error messages (language tag, e.g. en, it, pt-BR). |
-| `description` | string |  | Description of the project, reported by /api/health/ (empty: no description). |
-| `disable_core_routers` | list or comma-separated string |  | Routers of the core not to mount (e.g. permissions). |
-| `disable_core_routes` | list or comma-separated string |  | Routes of the core not to expose: `[METHOD ]/path`, relative to /api. |
-| `disable_routers` | list or comma-separated string |  | Routers of the project not to mount. |
-| `disable_routes` | list or comma-separated string |  | Routes of the project not to expose: `[METHOD ]/path`, relative to /api. |
-| `docs_enabled` | boolean | `true` | Serve the Swagger UI (/docs, /docs/core) and the OpenAPI schemas; false removes them (404). |
-| `envelope_enabled` | boolean | `true` | Wrap 2xx JSON in {success, message, data}; false: plain bodies (configure the client too). |
-| `events_allow_query_token` | boolean | `false` | Accept the access token in the WebSocket URL (?token=); false: one-time tickets only. |
-| `events_broadcast_enabled` | boolean | `false` | Open the event WebSocket (/api/core/events/ws). |
-| `events_public_types` | list or comma-separated string |  | Event types sent to every client (e.g. login); default: superusers and the user concerned. |
-| `events_ticket_store` | `database` \| `cache` | `database` | Where the WebSocket tickets live: the auth database (shared by workers) or the cache. |
-| `expose_response_database` | boolean | `false` | Add the name of the database the data came from to the enveloped API responses. |
-| `global_noauth` | boolean | `false` | Disable authentication on every router: development only. |
-| `group_permission_table` | string |  | Name of the group-permission table (empty: table_prefix + group_permission). |
-| `group_table` | string |  | Name of the groups table (empty: table_prefix + group). |
-| `host` | string | `127.0.0.1` | Address the development server (`pachifast dev`) listens on. |
-| `log_format` | `text` \| `json` | `text` | Format of the log lines: text (coloured) or json (one object per line). |
-| `log_level` | `""` \| `CRITICAL` \| `ERROR` \| `WARNING` \| `INFO` \| `DEBUG` |  | Log level of the application; empty means DEBUG with `debug`, INFO otherwise. |
-| `login_lockout_minutes` | integer | `15` | How long a locked account stays locked, in minutes. |
-| `login_max_attempts` | integer | `5` | Failed logins before the account is locked. |
-| `mfa_config_table` | string |  | Name of the MFA configuration table (empty: table_prefix + mfa_config). |
-| `mfa_enabled` | boolean | `false` | Enable multi-factor authentication. |
-| `mfa_encryption_key` | string |  | Key of the TOTP secrets stored encrypted; empty: derived from secret_key. Prefer the environment variable or the .env file: do not commit it. |
-| `mfa_max_attempts` | integer | `5` | Wrong MFA codes allowed before the login challenge is discarded. |
-| `mfa_otp_expire_minutes` | integer | `10` | Minutes the user has to give the MFA code after the password. |
-| `mfa_pending_table` | string |  | Name of the pending MFA challenges table (empty: table_prefix + mfa_pending). |
-| `mfa_send_cooldown_seconds` | integer | `30` | Seconds between two codes sent by the email or SMS enrolment; 0 is no wait. |
-| `mfa_totp_issuer` | string |  | Issuer shown by authenticator apps. |
-| `password_min_length` | integer | `12` | Minimum length of a password. |
-| `permission_table` | string |  | Name of the permissions table (empty: table_prefix + permission). |
-| `port` | integer | `8000` | Port of the development server. |
-| `project_name` | string |  | Name of the project, reported by /api/health/ (empty: the application title, default PachiFast). |
-| `refresh_reuse_grace_seconds` | integer | `10` | Grace seconds in which a reused refresh token is refused but the login is kept. |
-| `refresh_token_expire_days` | integer | `7` | Lifetime of a refresh token, in days. |
-| `refresh_token_rotation` | boolean | `true` | Every refresh issues a new, single-use refresh token; a reused one revokes the login. |
-| `registration_enabled` | boolean | `false` | Allow POST /auth/register (anyone can create an account); false answers 403. |
-| `request_id_enabled` | boolean | `true` | Put an X-Request-ID header on every response and the id in every log line. |
-| `secret_key` | string |  | Secret that signs the tokens: random string of at least 32 characters, required. Prefer the environment variable or the .env file: do not commit it. |
-| `swagger_noauth` | boolean | `false` | Let the Swagger UI (/docs) act as the first superuser without a token: development only. |
-| `table_prefix` | string | `pachifast_` | Prefix of every table name of the core. |
-| `use_accept_language` | boolean | `false` | Pick the message language from the Accept-Language header of each request. |
-| `user_group_table` | string |  | Name of the user-group table (empty: table_prefix + user_group). |
-| `user_permission_table` | string |  | Name of the user-permission table (empty: table_prefix + user_permission). |
-| `user_settings_table` | string |  | Name of the user settings table (empty: table_prefix + user_settings). |
-| `user_table` | string |  | Name of the users table (empty: table_prefix + user). |
-| `version` | string |  | Version of the project, reported by /api/health/ (empty: the application version, default 0.1.0). |
-| `wrap_auth_token_response` | boolean | `false` | Wrap the login and refresh-token responses in the standard envelope. |
+| Setting | YAML | Environment variable | Type | Default | Description |
+| --- | --- | --- | --- | --- | --- |
+| **app** | | | | | Identity and language of the application. |
+| `app_name` | `app.app_name` | `PACHIFAST_APP_NAME` | string | `PachiFast` | Name of the application, shown in the OpenAPI documentation. |
+| `project_name` | `app.project_name` | `PACHIFAST_PROJECT_NAME` | string |  | Name of the project, reported by /api/health/ (empty: the application title, default PachiFast). |
+| `description` | `app.description` | `PACHIFAST_DESCRIPTION` | string |  | Description of the project, reported by /api/health/ (empty: no description). |
+| `version` | `app.version` | `PACHIFAST_VERSION` | string |  | Version of the project, reported by /api/health/ (empty: the application version, default 0.1.0). |
+| `default_locale` | `app.default_locale` | `PACHIFAST_DEFAULT_LOCALE` | string | `en` | Language of the API error messages (language tag, e.g. en, it, pt-BR). |
+| `use_accept_language` | `app.use_accept_language` | `PACHIFAST_USE_ACCEPT_LANGUAGE` | boolean | `false` | Pick the message language from the Accept-Language header of each request. |
+| `api_v1_prefix` | `app.api_v1_prefix` | `PACHIFAST_API_V1_PREFIX` | string |  | Prefix added to every API route. |
+| **server** | | | | | Development server, API behaviour and response format. |
+| `host` | `server.host` | `PACHIFAST_HOST` | string | `127.0.0.1` | Address the development server (`pachifast dev`) listens on. |
+| `port` | `server.port` | `PACHIFAST_PORT` | integer | `8000` | Port of the development server. |
+| `debug` | `server.debug` | `PACHIFAST_DEBUG` | boolean | `false` | Show the traceback page to clients on errors: development only, off by default. |
+| `docs_enabled` | `server.docs_enabled` | `PACHIFAST_DOCS_ENABLED` | boolean | `true` | Serve the Swagger UI (/docs, /docs/core) and the OpenAPI schemas; false removes them (404). |
+| `envelope_enabled` | `server.envelope_enabled` | `PACHIFAST_ENVELOPE_ENABLED` | boolean | `true` | Wrap 2xx JSON in {success, message, data}; false: plain bodies (configure the client too). |
+| `request_id_enabled` | `server.request_id_enabled` | `PACHIFAST_REQUEST_ID_ENABLED` | boolean | `true` | Put an X-Request-ID header on every response and the id in every log line. |
+| `expose_response_database` | `server.expose_response_database` | `PACHIFAST_EXPOSE_RESPONSE_DATABASE` | boolean | `false` | Add the name of the database the data came from to the enveloped API responses. |
+| `wrap_auth_token_response` | `server.wrap_auth_token_response` | `PACHIFAST_WRAP_AUTH_TOKEN_RESPONSE` | boolean | `false` | Wrap the login and refresh-token responses in the standard envelope. |
+| **dev** | | | | | Switches for development only: never enable them in production. |
+| `global_noauth` | `dev.global_noauth` | `PACHIFAST_GLOBAL_NOAUTH` | boolean | `false` | Disable authentication on every router: development only. |
+| `swagger_noauth` | `dev.swagger_noauth` | `PACHIFAST_SWAGGER_NOAUTH` | boolean | `false` | Let the Swagger UI (/docs) act as the first superuser without a token: development only. |
+| **log** | | | | | Logging. |
+| `log_format` | `log.log_format` | `PACHIFAST_LOG_FORMAT` | `text` \| `json` | `text` | Format of the log lines: text (coloured) or json (one object per line). |
+| `log_level` | `log.log_level` | `PACHIFAST_LOG_LEVEL` | `""` \| `CRITICAL` \| `ERROR` \| `WARNING` \| `INFO` \| `DEBUG` |  | Log level of the application; empty means DEBUG with `debug`, INFO otherwise. |
+| **routes** | | | | | Routers and routes of the core and of the project that are not mounted. |
+| `disable_core_routers` | `routes.disable_core_routers` | `PACHIFAST_DISABLE_CORE_ROUTERS` | list or comma-separated string |  | Routers of the core not to mount (e.g. permissions). |
+| `disable_core_routes` | `routes.disable_core_routes` | `PACHIFAST_DISABLE_CORE_ROUTES` | list or comma-separated string |  | Routes of the core not to expose: `[METHOD ]/path`, relative to /api. |
+| `disable_routers` | `routes.disable_routers` | `PACHIFAST_DISABLE_ROUTERS` | list or comma-separated string |  | Routers of the project not to mount. |
+| `disable_routes` | `routes.disable_routes` | `PACHIFAST_DISABLE_ROUTES` | list or comma-separated string |  | Routes of the project not to expose: `[METHOD ]/path`, relative to /api. |
+| **database** | | | | | Main database, connection pool and table prefix. |
+| `database_url` | `database.database_url` | `PACHIFAST_DATABASE_URL` | string |  | SQLAlchemy URL of the main database (async driver, e.g. postgresql+asyncpg://...). Prefer the environment variable or the .env file: do not commit it. |
+| `dbdebug` | `database.dbdebug` | `PACHIFAST_DBDEBUG` | boolean | `false` | Log the SQL statements. |
+| `db_pool_size` | `database.db_pool_size` | `PACHIFAST_DB_POOL_SIZE` | integer | `5` | Connections a server database (PostgreSQL) keeps open, per process. |
+| `db_max_overflow` | `database.db_max_overflow` | `PACHIFAST_DB_MAX_OVERFLOW` | integer | `10` | Extra connections allowed above db_pool_size under load, per process. |
+| `db_pool_recycle` | `database.db_pool_recycle` | `PACHIFAST_DB_POOL_RECYCLE` | integer | `1800` | Seconds after which a connection is replaced; -1 never. |
+| `db_pool_timeout` | `database.db_pool_timeout` | `PACHIFAST_DB_POOL_TIMEOUT` | integer | `30` | Seconds a request waits for a free connection before it fails. |
+| `table_prefix` | `database.table_prefix` | `PACHIFAST_TABLE_PREFIX` | string | `pachifast_` | Prefix of every table name of the core. |
+| `auto_create_auth_schema` | `database.auto_create_auth_schema` | `PACHIFAST_AUTO_CREATE_AUTH_SCHEMA` | boolean | `false` | Create the auth tables at startup instead of using Alembic migrations. |
+| **cache** | | | | | Cache of the application: in-process or shared Redis. |
+| `cache_url` | `cache.url` | `PACHIFAST_CACHE_URL` | string |  | Empty: in-process cache. redis://, rediss:// or unix:// URL: shared Redis (needs pachifast[redis]). |
+| `cache_prefix` | `cache.prefix` | `PACHIFAST_CACHE_PREFIX` | string | `pachifast:` | Prefix of the cache keys, to share one Redis between applications. |
+| `cache_max_entries` | `cache.max_entries` | `PACHIFAST_CACHE_MAX_ENTRIES` | integer | `10000` | Maximum entries of the in-process cache. |
+| **auth** | | | | | Authentication: database, tokens, passwords, login protection. |
+| `auth_database_url` | `auth.auth_database_url` | `PACHIFAST_AUTH_DATABASE_URL` | string |  | SQLAlchemy URL of the authentication database (users, groups, permissions). Prefer the environment variable or the .env file: do not commit it. |
+| `secret_key` | `auth.secret_key` | `PACHIFAST_SECRET_KEY` | string |  | Secret that signs the tokens: random string of at least 32 characters, required. Prefer the environment variable or the .env file: do not commit it. |
+| `algorithm` | `auth.algorithm` | `PACHIFAST_ALGORITHM` | `HS256` \| `HS384` \| `HS512` | `HS256` | JWT signing algorithm. |
+| `access_token_expire_minutes` | `auth.access_token_expire_minutes` | `PACHIFAST_ACCESS_TOKEN_EXPIRE_MINUTES` | integer | `30` | Lifetime of an access token, in minutes. |
+| `refresh_token_expire_days` | `auth.refresh_token_expire_days` | `PACHIFAST_REFRESH_TOKEN_EXPIRE_DAYS` | integer | `7` | Lifetime of a refresh token, in days. |
+| `refresh_token_rotation` | `auth.refresh_token_rotation` | `PACHIFAST_REFRESH_TOKEN_ROTATION` | boolean | `true` | Every refresh issues a new, single-use refresh token; a reused one revokes the login. |
+| `refresh_reuse_grace_seconds` | `auth.refresh_reuse_grace_seconds` | `PACHIFAST_REFRESH_REUSE_GRACE_SECONDS` | integer | `10` | Grace seconds in which a reused refresh token is refused but the login is kept. |
+| `registration_enabled` | `auth.registration_enabled` | `PACHIFAST_REGISTRATION_ENABLED` | boolean | `false` | Allow POST /auth/register (anyone can create an account); false answers 403. |
+| `password_min_length` | `auth.password_min_length` | `PACHIFAST_PASSWORD_MIN_LENGTH` | integer | `12` | Minimum length of a password. |
+| `login_max_attempts` | `auth.login_max_attempts` | `PACHIFAST_LOGIN_MAX_ATTEMPTS` | integer | `5` | Failed logins before the account is locked. |
+| `login_lockout_minutes` | `auth.login_lockout_minutes` | `PACHIFAST_LOGIN_LOCKOUT_MINUTES` | integer | `15` | How long a locked account stays locked, in minutes. |
+| `auth_rate_limit` | `auth.auth_rate_limit` | `PACHIFAST_AUTH_RATE_LIMIT` | integer | `0` | Requests per client address and window on login, registration and MFA check; 0 is no limit. |
+| `auth_rate_window_seconds` | `auth.auth_rate_window_seconds` | `PACHIFAST_AUTH_RATE_WINDOW_SECONDS` | integer | `60` | Length of the window of auth_rate_limit, in seconds. |
+| **mfa** | | | | | Multi-factor authentication. |
+| `mfa_enabled` | `mfa.enabled` | `PACHIFAST_MFA_ENABLED` | boolean | `false` | Enable multi-factor authentication. |
+| `mfa_encryption_key` | `mfa.encryption_key` | `PACHIFAST_MFA_ENCRYPTION_KEY` | string |  | Key of the TOTP secrets stored encrypted; empty: derived from secret_key. Prefer the environment variable or the .env file: do not commit it. |
+| `mfa_max_attempts` | `mfa.max_attempts` | `PACHIFAST_MFA_MAX_ATTEMPTS` | integer | `5` | Wrong MFA codes allowed before the login challenge is discarded. |
+| `mfa_otp_expire_minutes` | `mfa.otp_expire_minutes` | `PACHIFAST_MFA_OTP_EXPIRE_MINUTES` | integer | `10` | Minutes the user has to give the MFA code after the password. |
+| `mfa_send_cooldown_seconds` | `mfa.send_cooldown_seconds` | `PACHIFAST_MFA_SEND_COOLDOWN_SECONDS` | integer | `30` | Seconds between two codes sent by the email or SMS enrolment; 0 is no wait. |
+| `mfa_totp_issuer` | `mfa.totp_issuer` | `PACHIFAST_MFA_TOTP_ISSUER` | string |  | Issuer shown by authenticator apps. |
+| **tables** | | | | | Names of the tables of the core (empty: table_prefix + default name). |
+| `user_table` | `tables.user_table` | `PACHIFAST_USER_TABLE` | string |  | Name of the users table (empty: table_prefix + user). |
+| `group_table` | `tables.group_table` | `PACHIFAST_GROUP_TABLE` | string |  | Name of the groups table (empty: table_prefix + group). |
+| `permission_table` | `tables.permission_table` | `PACHIFAST_PERMISSION_TABLE` | string |  | Name of the permissions table (empty: table_prefix + permission). |
+| `user_group_table` | `tables.user_group_table` | `PACHIFAST_USER_GROUP_TABLE` | string |  | Name of the user-group table (empty: table_prefix + user_group). |
+| `user_permission_table` | `tables.user_permission_table` | `PACHIFAST_USER_PERMISSION_TABLE` | string |  | Name of the user-permission table (empty: table_prefix + user_permission). |
+| `group_permission_table` | `tables.group_permission_table` | `PACHIFAST_GROUP_PERMISSION_TABLE` | string |  | Name of the group-permission table (empty: table_prefix + group_permission). |
+| `user_settings_table` | `tables.user_settings_table` | `PACHIFAST_USER_SETTINGS_TABLE` | string |  | Name of the user settings table (empty: table_prefix + user_settings). |
+| `mfa_config_table` | `tables.mfa_config_table` | `PACHIFAST_MFA_CONFIG_TABLE` | string |  | Name of the MFA configuration table (empty: table_prefix + mfa_config). |
+| `mfa_pending_table` | `tables.mfa_pending_table` | `PACHIFAST_MFA_PENDING_TABLE` | string |  | Name of the pending MFA challenges table (empty: table_prefix + mfa_pending). |
+| **activity_log** | | | | | Activity log of the write requests. |
+| `activity_log_enabled` | `activity_log.enabled` | `PACHIFAST_ACTIVITY_LOG_ENABLED` | boolean | `false` | Record POST/PUT/PATCH/DELETE requests in the activity log and expose it. |
+| `activity_log_exclude_paths` | `activity_log.exclude_paths` | `PACHIFAST_ACTIVITY_LOG_EXCLUDE_PATHS` | string | `refresh-token` | Comma-separated path fragments that are never logged. |
+| `activity_log_retention_days` | `activity_log.retention_days` | `PACHIFAST_ACTIVITY_LOG_RETENTION_DAYS` | integer | `0` | Days of activity log that `pachifast audit purge` keeps; 0 needs --days. |
+| `activity_log_table` | `activity_log.table` | `PACHIFAST_ACTIVITY_LOG_TABLE` | string |  | Name of the activity log table (empty: table_prefix + activity_log). |
+| **events** | | | | | Event WebSocket. |
+| `events_broadcast_enabled` | `events.broadcast_enabled` | `PACHIFAST_EVENTS_BROADCAST_ENABLED` | boolean | `false` | Open the event WebSocket (/api/core/events/ws). |
+| `events_allow_query_token` | `events.allow_query_token` | `PACHIFAST_EVENTS_ALLOW_QUERY_TOKEN` | boolean | `false` | Accept the access token in the WebSocket URL (?token=); false: one-time tickets only. |
+| `events_public_types` | `events.public_types` | `PACHIFAST_EVENTS_PUBLIC_TYPES` | list or comma-separated string |  | Event types sent to every client (e.g. login); default: superusers and the user concerned. |
+| `events_ticket_store` | `events.ticket_store` | `PACHIFAST_EVENTS_TICKET_STORE` | `database` \| `cache` | `database` | Where the WebSocket tickets live: the auth database (shared by workers) or the cache. |

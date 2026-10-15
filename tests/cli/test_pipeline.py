@@ -209,7 +209,7 @@ def test_private_index_warns_when_not_declared_and_rejects_bad_names(tmp_path: P
 
 def _serve_project(tmp_path: Path) -> Path:
     root = _project(tmp_path)
-    (root / "pachifast.yaml").write_text("host: 127.0.0.1\nport: 9050\n", encoding="utf-8")
+    (root / "pachifast.yaml").write_text("server:\n  host: 127.0.0.1\n  port: 9050\n", encoding="utf-8")
     return root
 
 

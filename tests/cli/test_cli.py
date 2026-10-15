@@ -461,7 +461,7 @@ def test_new_project_writes_a_sample_config_file(tmp_path: Path) -> None:
 
     root = _new_demo_project(tmp_path)
     data = yaml.safe_load((root / "pachifast.yaml").read_text(encoding="utf-8"))
-    assert data == {"host": "127.0.0.1", "port": 8000}
+    assert data == {"server": {"host": "127.0.0.1", "port": 8000}}
 
 
 def test_init_does_not_copy_yaml_defined_values_into_env(tmp_path: Path, monkeypatch) -> None:
@@ -470,7 +470,7 @@ def test_init_does_not_copy_yaml_defined_values_into_env(tmp_path: Path, monkeyp
     root = _new_demo_project(tmp_path)
     yaml_url = f"sqlite+aiosqlite:///{root / 'from-yaml.sqlite3'}"
     (root / "pachifast.yaml").write_text(
-        f"host: 0.0.0.0\nport: 8123\nauth_database_url: {yaml_url}\n", encoding="utf-8"
+        f"server:\n  host: 0.0.0.0\n  port: 8123\nauth:\n  auth_database_url: {yaml_url}\n", encoding="utf-8"
     )
 
     result = runner.invoke(app, ["init", "--base-dir", str(root), "--password", "s3cret-pass-1"])

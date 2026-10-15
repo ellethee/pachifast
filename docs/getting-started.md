@@ -264,7 +264,8 @@ app = create_app((core_module, hello))
 `pachifast.yaml` (or the same value in the environment as `PACHIFAST_AUTH_DATABASE_URL`):
 
 ```yaml
-auth_database_url: sqlite+aiosqlite:///./db.sqlite3
+auth:
+  auth_database_url: sqlite+aiosqlite:///./db.sqlite3
 ```
 
 Run it with a secret key in the environment (this path does not use `init`; do not mix it with a later `pachifast init` in the same shell, which would refuse to run until you `unset PACHIFAST_SECRET_KEY`; the key is required: the app refuses to start without it):

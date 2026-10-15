@@ -229,11 +229,12 @@ PACHIFAST_DISABLE_CORE_ROUTERS=permissions
 PACHIFAST_DISABLE_CORE_ROUTES=/user/settings
 ```
 
-In `pachifast.yaml` the keys are the same names in lower case, and values can be real lists:
+In `pachifast.yaml` they live in the `routes` section, with the same names in lower case, and values can be real lists:
 
 ```yaml
-disable_routers: [billing, admin]
-disable_core_routes: [/user/settings]
+routes:
+  disable_routers: [billing, admin]
+  disable_core_routes: [/user/settings]
 ```
 
 | Setting | Applies to | Matches |

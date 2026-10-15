@@ -111,7 +111,7 @@ The application logger is configured when the app is created: coloured output on
 PACHIFAST_LOG_LEVEL=WARNING pachifast serve
 ```
 
-> **Warning**: never enable `debug` in production. Tracebacks reveal server paths and internals to clients. Because environment variables take precedence over the YAML file, a `debug: true` left in `pachifast.yaml` is overridden by `PACHIFAST_DEBUG=false`. `dbdebug` can write sensitive query parameters to the log.
+> **Warning**: never enable `debug` in production. Tracebacks reveal server paths and internals to clients. Because environment variables take precedence over the YAML file, a `debug: true` left in the `server` section of `pachifast.yaml` is overridden by `PACHIFAST_DEBUG=false`. `dbdebug` can write sensitive query parameters to the log.
 
 ## Connection pool
 

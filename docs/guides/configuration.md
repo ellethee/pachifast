@@ -11,15 +11,15 @@ When the settings are built, sources are consulted in this order. The first one 
 | 1 (highest) | explicit arguments | `pachifast dev --port 9000` |
 | 2 | environment variables | `PACHIFAST_PORT=9000` |
 | 3 | the `.env` file | `PACHIFAST_PORT=9000` in `.env` |
-| 4 | the YAML file | `port: 9000` in `pachifast.yaml` |
+| 4 | the YAML file | `port: 9000` in the `server` section of `pachifast.yaml` |
 | 5 (lowest) | defaults | `8000` |
 
-Environment variables and `.env` entries carry the `PACHIFAST_` prefix and are case-insensitive: `PACHIFAST_ACCESS_TOKEN_EXPIRE_MINUTES=60` and `pachifast_access_token_expire_minutes=60` are the same. Keys in the YAML file are the bare setting names, also case-insensitive.
+Environment variables and `.env` entries carry the `PACHIFAST_` prefix and are case-insensitive: `PACHIFAST_ACCESS_TOKEN_EXPIRE_MINUTES=60` and `pachifast_access_token_expire_minutes=60` are the same. Keys in the YAML file are grouped in sections (see below) and are also case-insensitive.
 
 A sensible split follows from the priority:
 
 - put **secrets and per-environment values** in `.env` or in real environment variables (`secret_key`, database URLs with passwords);
-- put **non-secret, versioned project defaults** in `pachifast.yaml` (`host`, `port`, `default_locale`, `disable_core_routers`...);
+- put **non-secret, versioned project defaults** in `pachifast.yaml` (`server.port`, `app.default_locale`, `routes.disable_core_routers`...);
 - let the deployment override anything with environment variables, with no file edits.
 
 > **Note**: the `.env` file is looked up in the current directory each time the settings are built, so `pachifast` commands run with `--base-dir` from another directory still find the project's file. Only a file named exactly `.env` is read; there is no `.env.<name>` lookup at runtime.
@@ -36,18 +36,74 @@ BILLING_DATABASE_URL=postgresql+asyncpg://<user>:<password>@localhost:5432/billi
 
 ## The YAML file
 
-Besides `.env`, a project can keep its non-secret configuration in a YAML file next to `main.py`. `pachifast new project` generates one:
+Besides `.env`, a project can keep its non-secret configuration in a YAML file next to `main.py`. The settings are grouped in **sections**. `pachifast new project` generates a file like this (every key is optional):
 
 ```yaml
 # yaml-language-server: $schema=./pachifast.schema.json
-host: 127.0.0.1
-port: 8000
+server:
+  host: 127.0.0.1
+  port: 8000
+  # debug: true                  # development only
 
-# debug: true                    # development only
-# default_locale: it
-# use_accept_language: true
-# disable_core_routers: [permissions]
+# app:
+#   default_locale: it
+#   use_accept_language: true
+# routes:
+#   disable_core_routers: [permissions]
 ```
+
+A fuller example:
+
+```yaml
+app:
+  app_name: My API
+  default_locale: it
+server:
+  host: 0.0.0.0
+  port: 8000
+  docs_enabled: false
+log:
+  log_format: json
+  log_level: INFO
+routes:
+  disable_core_routers: [permissions]
+cache:
+  url: redis://localhost:6379/0     # cache_url
+auth:
+  access_token_expire_minutes: 30
+  registration_enabled: false
+mfa:
+  enabled: true                     # mfa_enabled
+activity_log:
+  enabled: true                     # activity_log_enabled
+  retention_days: 90
+events:
+  broadcast_enabled: true           # events_broadcast_enabled
+  public_types: [login]
+```
+
+### Sections
+
+| Section | Contents |
+| --- | --- |
+| `app` | name, project identity, language: `app_name`, `project_name`, `description`, `version`, `default_locale`, `use_accept_language`, `api_v1_prefix` |
+| `server` | `host`, `port`, `debug`, `docs_enabled`, `envelope_enabled`, `request_id_enabled`, `expose_response_database`, `wrap_auth_token_response` |
+| `dev` | development-only switches: `global_noauth`, `swagger_noauth` |
+| `log` | `log_format`, `log_level` |
+| `routes` | `disable_core_routers`, `disable_core_routes`, `disable_routers`, `disable_routes` |
+| `database` | `database_url`, `dbdebug`, `db_pool_*`, `table_prefix`, `auto_create_auth_schema` |
+| `cache` | `url`, `prefix`, `max_entries` |
+| `auth` | `auth_database_url`, `secret_key`, `algorithm`, token lifetimes and rotation, `registration_enabled`, password and login limits, `auth_rate_*` |
+| `mfa` | `enabled`, `encryption_key`, `max_attempts`, `otp_expire_minutes`, `send_cooldown_seconds`, `totp_issuer` |
+| `tables` | names of the tables of the core (`user_table`, `group_table`, `mfa_config_table`...) |
+| `activity_log` | `enabled`, `exclude_paths`, `retention_days`, `table` |
+| `events` | `broadcast_enabled`, `allow_query_token`, `public_types`, `ticket_store` |
+
+The rule is simple: a key is the name of the setting, and in the `cache`, `mfa`, `activity_log` and `events` sections the section name replaces the prefix of the setting: `cache.url` is `cache_url` (`PACHIFAST_CACHE_URL`), `mfa.enabled` is `mfa_enabled`, `activity_log.table` is `activity_log_table`, `events.broadcast_enabled` is `events_broadcast_enabled`. The [Settings reference](../reference/settings.md) shows the location of every setting next to its environment variable. The tables below list settings by their field name (the name of the environment variable without the `PACHIFAST_` prefix).
+
+Mistakes are caught early: a section that is not a mapping, an unknown key inside a section (the message suggests the closest valid key), or the same setting given twice, stop the startup with an error that names the file. Keys at the top level that are not sections are left alone, so a project or an app can keep its own settings there.
+
+> **Deprecated**: the flat format of 0.15 (`port: 9000` at the top level of the file) is still read, but logs a warning that lists the `section.key` to use instead. See [Upgrading](upgrading.md#upgrade-notes).
 
 ### How the file is found
 
@@ -62,7 +118,7 @@ To use a specific file, set `PACHIFAST_CONFIG_FILE` (a leading `~` is expanded).
 | file exists but is not valid YAML, or its top level is not a mapping | error that names the file |
 | empty file | treated as no configuration |
 
-Keys that are not settings of the core are allowed in the file: apps can read their own settings from it (see below).
+Top-level keys that are not sections are allowed in the file: apps can read their own settings from it (see below).
 
 ## Per-app settings
 
@@ -99,7 +155,7 @@ There are two ways to name the environment variable of a field:
 
 Without `_env_prefix` the inherited prefix `PACHIFAST_` applies: a field `retries` is read from `PACHIFAST_RETRIES`. A field with a `validation_alias` ignores the prefix. Class attribute `_env_prefix` replaces the prefix; you do not need to write `model_config` for it.
 
-The same names work in `pachifast.yaml` (lower-case): `billing_database_url: sqlite:///billing.db` for the alias above, `currency: USD` for the prefixed field. A real environment variable still beats the file.
+The same names work in `pachifast.yaml` (lower-case): `billing_database_url: sqlite:///billing.db` for the alias above, `currency: USD` for the prefixed field (top-level keys, outside the core sections). A real environment variable still beats the file.
 
 Once registered through `settings_modules`, the values are copied onto the global settings object, so they are reachable from the code as `get_settings().currency`. See [Modules](modules.md#settings-modules) for the exact rules.
 
@@ -111,7 +167,7 @@ Once registered through `settings_modules`, the values are copied onto the globa
 
 - there is **no default**; the application refuses to start (a validation error at settings creation) if it is empty;
 - it must be at least **32 characters**; a shorter value is rejected at startup;
-- set it with `PACHIFAST_SECRET_KEY` in the environment or in `.env`, never in `pachifast.yaml` or in source code.
+- set it with `PACHIFAST_SECRET_KEY` in the environment or in `.env`, never in `pachifast.yaml` (`auth.secret_key`) or in source code.
 
 Generate one:
 
@@ -265,8 +321,8 @@ Link it with the first line of the YAML file:
 
 Properties of the schema:
 
-- keys are lower-case, matching how the file is read (case-insensitive);
-- keys that are not core settings are accepted, because projects and apps add their own;
+- one object per section (`additionalProperties: false`: a misspelled key is flagged), keys in lower case, matching how the file is read (case-insensitive);
+- top-level keys that are not sections are accepted, because projects and apps add their own;
 - secrets (`secret_key`, database URLs) appear in the schema so editors know them, but they belong in `.env`, not in the file.
 
 ## Using settings in code

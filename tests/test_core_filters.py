@@ -260,7 +260,9 @@ def test_disable_settings_reach_the_core_too(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_disable_settings_accept_yaml_lists(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
-    (tmp_path / "pachifast.yaml").write_text("disable_routers: [permissions]\ndisable_routes:\n  - GET /health\n")
+    (tmp_path / "pachifast.yaml").write_text(
+        "routes:\n  disable_routers: [permissions]\n  disable_routes:\n    - GET /health\n"
+    )
     monkeypatch.delenv("PACHIFAST_DISABLE_ROUTERS", raising=False)
     get_settings.cache_clear()
     try:

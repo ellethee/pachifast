@@ -9,9 +9,15 @@ otherwise be taken for settings. ``PACHIFAST_CONFIG_FILE`` points to a specific 
 A missing file is not an error; an unreadable or malformed one is.
 
 Priority of the settings sources, highest first: explicit arguments, environment variables, ``.env``,
-YAML file, defaults. Keys are the setting names (case-insensitive), e.g. ``port: 9000``.
+YAML file, defaults. The file is organised in sections (see ``sections``), keys are case-insensitive::
+
+    server:
+      port: 9000
+
+The flat format of 0.15 (``port: 9000`` at the top level) is still read but deprecated.
 """
 
+import difflib
 import logging
 import os
 from pathlib import Path
@@ -21,11 +27,14 @@ import yaml
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
 
+from .sections import SECTIONS, field_locations
+
 log = logging.getLogger(__name__)
 
 CONFIG_FILE_VAR = "PACHIFAST_CONFIG_FILE"
 _FIXED_NAMES = ("pachifast",)
 _SUFFIXES = (".yaml", ".yml")
+_WARNED: set[tuple[Path, tuple[str, ...]]] = set()  # deprecation warnings already logged: once per file
 
 
 def candidate_paths(base_dir: Path) -> list[Path]:
@@ -49,11 +58,66 @@ def find_config_file(base_dir: Path | None = None) -> Path | None:
     return next((path for path in candidate_paths(root) if path.is_file()), None)
 
 
-def load_config_data(base_dir: Path | None = None) -> dict[str, Any]:
-    """Load the YAML config file as a dict with lower-cased keys (``{}`` when there is no file).
+def _flatten(data: dict[str, Any], path: Path) -> dict[str, Any]:
+    """Turn the parsed file into ``{field_name: value}``: sections are flattened, flat keys are still accepted.
 
     Raises:
-        ValueError: If the file is not valid YAML or its top level is not a mapping.
+        ValueError: A section that is not a mapping, an unknown key in a section, or a field given twice.
+    """
+    flat: dict[str, Any] = {}
+    origin: dict[str, str] = {}  # field -> where it was given, to report duplicates
+    deprecated: list[str] = []
+    locations = field_locations()
+    for raw_key, value in data.items():
+        key = str(raw_key).lower()
+        if key in SECTIONS:
+            if value is None:
+                continue
+            if not isinstance(value, dict):
+                raise ValueError(f"Invalid configuration file {path}: section '{key}' must be a mapping (key: value).")
+            valid = {name.lower(): field for name, field in SECTIONS[key]}
+            for raw_name, item in value.items():
+                name = str(raw_name).lower()
+                if name not in valid:
+                    hint = difflib.get_close_matches(name, valid, n=1)
+                    suggestion = f" Did you mean '{hint[0]}'?" if hint else ""
+                    raise ValueError(
+                        f"Invalid configuration file {path}: unknown key '{name}' in section '{key}'."
+                        f"{suggestion} Valid keys: {', '.join(valid)}."
+                    )
+                _store(flat, origin, valid[name], item, f"{key}.{name}", path)
+        else:
+            if key in locations:
+                deprecated.append(key)
+            # other keys belong to the project or to an app (own settings class): kept for it
+            _store(flat, origin, key, value, key, path)
+    if deprecated and (path, tuple(deprecated)) not in _WARNED:
+        _WARNED.add((path, tuple(deprecated)))
+        moved = ", ".join(f"{key} -> {locations[key]}" for key in deprecated)
+        log.warning("%s: flat keys are deprecated, move them into their section (%s).", path, moved)
+    return flat
+
+
+def _store(flat: dict[str, Any], origin: dict[str, str], field: str, value: Any, where: str, path: Path) -> None:
+    """Record ``field`` unless the value is ``null``; the same field given twice is an error."""
+    if value is None:
+        return
+    if field in flat:
+        raise ValueError(
+            f"Invalid configuration file {path}: '{field}' is given twice ('{origin[field]}' and '{where}')."
+        )
+    flat[field] = value
+    origin[field] = where
+
+
+def load_config_data(base_dir: Path | None = None) -> dict[str, Any]:
+    """Load the YAML config file as a flat dict ``{field_name_lower: value}`` (``{}`` when there is no file).
+
+    The file is organised in sections (``server: {port: 9000}``); top-level setting names of the old flat format are
+    still read, with a deprecation warning. Keys with a ``null`` value are ignored.
+
+    Raises:
+        ValueError: If the file is not valid YAML, its top level is not a mapping, or a section is malformed.
     """
     path = find_config_file(base_dir)
     if path is None:
@@ -67,7 +131,7 @@ def load_config_data(base_dir: Path | None = None) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError(f"Invalid configuration file {path}: the top level must be a mapping (key: value).")
     log.debug("Loaded configuration file %s", path)
-    return {str(key).lower(): value for key, value in data.items()}
+    return _flatten(data, path)
 
 
 class YamlConfigSource(PydanticBaseSettingsSource):

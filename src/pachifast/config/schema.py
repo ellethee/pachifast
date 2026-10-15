@@ -1,12 +1,14 @@
 """JSON Schema of the ``pachifast.yaml`` configuration file, generated from the settings model.
 
 Editors with a YAML language server (VS Code with the Red Hat YAML extension, JetBrains, Neovim...) use it for
-completion, validation and hover help. Keys in the file are case-insensitive, so the schema lists them in lower case.
-Keys that are not settings are allowed: projects and apps add their own.
+completion, validation and hover help. The settings are grouped in sections (see ``sections.py``); keys are
+case-insensitive, so the schema lists them in lower case. Top-level keys that are not sections are allowed:
+projects and apps add their own.
 """
 
 from typing import Any
 
+from .sections import SECTION_DESCRIPTIONS, SECTIONS
 from .settings import PachifastSettings
 
 SCHEMA_ID = "https://pachifast.local/schemas/pachifast.schema.json"
@@ -110,17 +112,23 @@ def _as_yaml_property(prop: dict[str, Any], name: str) -> dict[str, Any]:
 
 
 def build_config_schema() -> dict[str, Any]:
-    """The JSON Schema (draft 2020-12) of ``pachifast.yaml``."""
+    """The JSON Schema (draft 2020-12) of ``pachifast.yaml``: one object per section, keys as in ``sections.py``."""
     model_schema = PachifastSettings.model_json_schema()
-    properties = {
-        name.lower(): _as_yaml_property(prop, name.lower()) for name, prop in model_schema["properties"].items()
-    }
+    by_field = {name.lower(): prop for name, prop in model_schema["properties"].items()}
+    properties: dict[str, Any] = {}
+    for section, pairs in SECTIONS.items():
+        properties[section] = {
+            "description": SECTION_DESCRIPTIONS[section],
+            "type": "object",
+            "properties": {key: _as_yaml_property(by_field[field], field) for key, field in pairs},
+            "additionalProperties": False,
+        }
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": SCHEMA_ID,
         "title": "pachifast.yaml",
         "description": "Configuration of a pachifast project. Environment variables and .env take precedence.",
         "type": "object",
-        "properties": dict(sorted(properties.items())),
+        "properties": properties,
         "additionalProperties": True,
     }

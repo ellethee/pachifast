@@ -5,445 +5,529 @@
   "description": "Configuration of a pachifast project. Environment variables and .env take precedence.",
   "type": "object",
   "properties": {
-    "access_token_expire_minutes": {
-      "default": 30,
-      "minimum": 1,
-      "type": "integer",
-      "description": "Lifetime of an access token, in minutes."
-    },
-    "activity_log_enabled": {
-      "default": false,
-      "type": "boolean",
-      "description": "Record POST/PUT/PATCH/DELETE requests in the activity log and expose it."
-    },
-    "activity_log_exclude_paths": {
-      "default": "refresh-token",
-      "type": "string",
-      "description": "Comma-separated path fragments that are never logged."
-    },
-    "activity_log_retention_days": {
-      "default": 0,
-      "minimum": 0,
-      "type": "integer",
-      "description": "Days of activity log that `pachifast audit purge` keeps; 0 needs --days."
-    },
-    "activity_log_table": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the activity log table (empty: table_prefix + activity_log)."
-    },
-    "algorithm": {
-      "default": "HS256",
-      "enum": [
-        "HS256",
-        "HS384",
-        "HS512"
-      ],
-      "type": "string",
-      "description": "JWT signing algorithm."
-    },
-    "api_v1_prefix": {
-      "default": "",
-      "type": "string",
-      "description": "Prefix added to every API route."
-    },
-    "app_name": {
-      "default": "PachiFast",
-      "type": "string",
-      "description": "Name of the application, shown in the OpenAPI documentation."
-    },
-    "auth_database_url": {
-      "default": "",
-      "type": "string",
-      "description": "SQLAlchemy URL of the authentication database (users, groups, permissions). Prefer the environment variable or the .env file: do not commit it."
-    },
-    "auth_rate_limit": {
-      "default": 0,
-      "maximum": 10000,
-      "minimum": 0,
-      "type": "integer",
-      "description": "Requests per client address and window on login, registration and MFA check; 0 is no limit."
-    },
-    "auth_rate_window_seconds": {
-      "default": 60,
-      "minimum": 1,
-      "type": "integer",
-      "description": "Length of the window of auth_rate_limit, in seconds."
-    },
-    "auto_create_auth_schema": {
-      "default": false,
-      "type": "boolean",
-      "description": "Create the auth tables at startup instead of using Alembic migrations."
-    },
-    "cache_max_entries": {
-      "default": 10000,
-      "type": "integer",
-      "description": "Maximum entries of the in-process cache."
-    },
-    "cache_prefix": {
-      "default": "pachifast:",
-      "type": "string",
-      "description": "Prefix of the cache keys, to share one Redis between applications."
-    },
-    "cache_url": {
-      "default": "",
-      "type": "string",
-      "description": "Empty: in-process cache. redis://, rediss:// or unix:// URL: shared Redis (needs pachifast[redis]).",
-      "pattern": "^$|^(redis|rediss|unix)://"
-    },
-    "database_url": {
-      "default": "",
-      "type": "string",
-      "description": "SQLAlchemy URL of the main database (async driver, e.g. postgresql+asyncpg://...). Prefer the environment variable or the .env file: do not commit it."
-    },
-    "db_max_overflow": {
-      "default": 10,
-      "maximum": 500,
-      "minimum": 0,
-      "type": "integer",
-      "description": "Extra connections allowed above db_pool_size under load, per process."
-    },
-    "db_pool_recycle": {
-      "default": 1800,
-      "minimum": -1,
-      "type": "integer",
-      "description": "Seconds after which a connection is replaced; -1 never."
-    },
-    "db_pool_size": {
-      "default": 5,
-      "maximum": 500,
-      "minimum": 1,
-      "type": "integer",
-      "description": "Connections a server database (PostgreSQL) keeps open, per process."
-    },
-    "db_pool_timeout": {
-      "default": 30,
-      "minimum": 1,
-      "type": "integer",
-      "description": "Seconds a request waits for a free connection before it fails."
-    },
-    "dbdebug": {
-      "default": false,
-      "type": "boolean",
-      "description": "Log the SQL statements."
-    },
-    "debug": {
-      "default": false,
-      "type": "boolean",
-      "description": "Show the traceback page to clients on errors: development only, off by default."
-    },
-    "default_locale": {
-      "default": "en",
-      "type": "string",
-      "description": "Language of the API error messages (language tag, e.g. en, it, pt-BR).",
-      "pattern": "^[A-Za-z]{2,3}([-_][A-Za-z0-9]{2,8})*$"
-    },
-    "description": {
-      "default": "",
-      "type": "string",
-      "description": "Description of the project, reported by /api/health/ (empty: no description)."
-    },
-    "disable_core_routers": {
-      "description": "Routers of the core not to mount (e.g. permissions).",
-      "default": [],
-      "anyOf": [
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
+    "app": {
+      "description": "Identity and language of the application.",
+      "type": "object",
+      "properties": {
+        "app_name": {
+          "default": "PachiFast",
+          "type": "string",
+          "description": "Name of the application, shown in the OpenAPI documentation."
         },
-        {
-          "type": "string"
-        }
-      ]
-    },
-    "disable_core_routes": {
-      "description": "Routes of the core not to expose: `[METHOD ]/path`, relative to /api.",
-      "default": [],
-      "anyOf": [
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
+        "project_name": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the project, reported by /api/health/ (empty: the application title, default PachiFast)."
         },
-        {
-          "type": "string"
-        }
-      ]
-    },
-    "disable_routers": {
-      "description": "Routers of the project not to mount.",
-      "default": [],
-      "anyOf": [
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
+        "description": {
+          "default": "",
+          "type": "string",
+          "description": "Description of the project, reported by /api/health/ (empty: no description)."
         },
-        {
-          "type": "string"
-        }
-      ]
-    },
-    "disable_routes": {
-      "description": "Routes of the project not to expose: `[METHOD ]/path`, relative to /api.",
-      "default": [],
-      "anyOf": [
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
+        "version": {
+          "default": "",
+          "type": "string",
+          "description": "Version of the project, reported by /api/health/ (empty: the application version, default 0.1.0)."
         },
-        {
-          "type": "string"
-        }
-      ]
-    },
-    "docs_enabled": {
-      "default": true,
-      "type": "boolean",
-      "description": "Serve the Swagger UI (/docs, /docs/core) and the OpenAPI schemas; false removes them (404)."
-    },
-    "envelope_enabled": {
-      "default": true,
-      "type": "boolean",
-      "description": "Wrap 2xx JSON in {success, message, data}; false: plain bodies (configure the client too)."
-    },
-    "events_allow_query_token": {
-      "default": false,
-      "type": "boolean",
-      "description": "Accept the access token in the WebSocket URL (?token=); false: one-time tickets only."
-    },
-    "events_broadcast_enabled": {
-      "default": false,
-      "type": "boolean",
-      "description": "Open the event WebSocket (/api/core/events/ws)."
-    },
-    "events_public_types": {
-      "description": "Event types sent to every client (e.g. login); default: superusers and the user concerned.",
-      "default": [],
-      "anyOf": [
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
+        "default_locale": {
+          "default": "en",
+          "type": "string",
+          "description": "Language of the API error messages (language tag, e.g. en, it, pt-BR).",
+          "pattern": "^[A-Za-z]{2,3}([-_][A-Za-z0-9]{2,8})*$"
         },
-        {
-          "type": "string"
+        "use_accept_language": {
+          "default": false,
+          "type": "boolean",
+          "description": "Pick the message language from the Accept-Language header of each request."
+        },
+        "api_v1_prefix": {
+          "default": "",
+          "type": "string",
+          "description": "Prefix added to every API route."
         }
-      ]
+      },
+      "additionalProperties": false
     },
-    "events_ticket_store": {
-      "default": "database",
-      "enum": [
-        "database",
-        "cache"
-      ],
-      "type": "string",
-      "description": "Where the WebSocket tickets live: the auth database (shared by workers) or the cache."
+    "server": {
+      "description": "Development server, API behaviour and response format.",
+      "type": "object",
+      "properties": {
+        "host": {
+          "default": "127.0.0.1",
+          "type": "string",
+          "description": "Address the development server (`pachifast dev`) listens on."
+        },
+        "port": {
+          "default": 8000,
+          "maximum": 65535,
+          "minimum": 1,
+          "type": "integer",
+          "description": "Port of the development server."
+        },
+        "debug": {
+          "default": false,
+          "type": "boolean",
+          "description": "Show the traceback page to clients on errors: development only, off by default."
+        },
+        "docs_enabled": {
+          "default": true,
+          "type": "boolean",
+          "description": "Serve the Swagger UI (/docs, /docs/core) and the OpenAPI schemas; false removes them (404)."
+        },
+        "envelope_enabled": {
+          "default": true,
+          "type": "boolean",
+          "description": "Wrap 2xx JSON in {success, message, data}; false: plain bodies (configure the client too)."
+        },
+        "request_id_enabled": {
+          "default": true,
+          "type": "boolean",
+          "description": "Put an X-Request-ID header on every response and the id in every log line."
+        },
+        "expose_response_database": {
+          "default": false,
+          "type": "boolean",
+          "description": "Add the name of the database the data came from to the enveloped API responses."
+        },
+        "wrap_auth_token_response": {
+          "default": false,
+          "type": "boolean",
+          "description": "Wrap the login and refresh-token responses in the standard envelope."
+        }
+      },
+      "additionalProperties": false
     },
-    "expose_response_database": {
-      "default": false,
-      "type": "boolean",
-      "description": "Add the name of the database the data came from to the enveloped API responses."
+    "dev": {
+      "description": "Switches for development only: never enable them in production.",
+      "type": "object",
+      "properties": {
+        "global_noauth": {
+          "default": false,
+          "type": "boolean",
+          "description": "Disable authentication on every router: development only."
+        },
+        "swagger_noauth": {
+          "default": false,
+          "type": "boolean",
+          "description": "Let the Swagger UI (/docs) act as the first superuser without a token: development only."
+        }
+      },
+      "additionalProperties": false
     },
-    "global_noauth": {
-      "default": false,
-      "type": "boolean",
-      "description": "Disable authentication on every router: development only."
+    "log": {
+      "description": "Logging.",
+      "type": "object",
+      "properties": {
+        "log_format": {
+          "default": "text",
+          "enum": [
+            "text",
+            "json"
+          ],
+          "type": "string",
+          "description": "Format of the log lines: text (coloured) or json (one object per line)."
+        },
+        "log_level": {
+          "default": "",
+          "type": "string",
+          "description": "Log level of the application; empty means DEBUG with `debug`, INFO otherwise.",
+          "enum": [
+            "",
+            "CRITICAL",
+            "ERROR",
+            "WARNING",
+            "INFO",
+            "DEBUG"
+          ]
+        }
+      },
+      "additionalProperties": false
     },
-    "group_permission_table": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the group-permission table (empty: table_prefix + group_permission)."
+    "routes": {
+      "description": "Routers and routes of the core and of the project that are not mounted.",
+      "type": "object",
+      "properties": {
+        "disable_core_routers": {
+          "description": "Routers of the core not to mount (e.g. permissions).",
+          "default": [],
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "disable_core_routes": {
+          "description": "Routes of the core not to expose: `[METHOD ]/path`, relative to /api.",
+          "default": [],
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "disable_routers": {
+          "description": "Routers of the project not to mount.",
+          "default": [],
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "disable_routes": {
+          "description": "Routes of the project not to expose: `[METHOD ]/path`, relative to /api.",
+          "default": [],
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
     },
-    "group_table": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the groups table (empty: table_prefix + group)."
+    "database": {
+      "description": "Main database, connection pool and table prefix.",
+      "type": "object",
+      "properties": {
+        "database_url": {
+          "default": "",
+          "type": "string",
+          "description": "SQLAlchemy URL of the main database (async driver, e.g. postgresql+asyncpg://...). Prefer the environment variable or the .env file: do not commit it."
+        },
+        "dbdebug": {
+          "default": false,
+          "type": "boolean",
+          "description": "Log the SQL statements."
+        },
+        "db_pool_size": {
+          "default": 5,
+          "maximum": 500,
+          "minimum": 1,
+          "type": "integer",
+          "description": "Connections a server database (PostgreSQL) keeps open, per process."
+        },
+        "db_max_overflow": {
+          "default": 10,
+          "maximum": 500,
+          "minimum": 0,
+          "type": "integer",
+          "description": "Extra connections allowed above db_pool_size under load, per process."
+        },
+        "db_pool_recycle": {
+          "default": 1800,
+          "minimum": -1,
+          "type": "integer",
+          "description": "Seconds after which a connection is replaced; -1 never."
+        },
+        "db_pool_timeout": {
+          "default": 30,
+          "minimum": 1,
+          "type": "integer",
+          "description": "Seconds a request waits for a free connection before it fails."
+        },
+        "table_prefix": {
+          "default": "pachifast_",
+          "type": "string",
+          "description": "Prefix of every table name of the core."
+        },
+        "auto_create_auth_schema": {
+          "default": false,
+          "type": "boolean",
+          "description": "Create the auth tables at startup instead of using Alembic migrations."
+        }
+      },
+      "additionalProperties": false
     },
-    "host": {
-      "default": "127.0.0.1",
-      "type": "string",
-      "description": "Address the development server (`pachifast dev`) listens on."
+    "cache": {
+      "description": "Cache of the application: in-process or shared Redis.",
+      "type": "object",
+      "properties": {
+        "url": {
+          "default": "",
+          "type": "string",
+          "description": "Empty: in-process cache. redis://, rediss:// or unix:// URL: shared Redis (needs pachifast[redis]).",
+          "pattern": "^$|^(redis|rediss|unix)://"
+        },
+        "prefix": {
+          "default": "pachifast:",
+          "type": "string",
+          "description": "Prefix of the cache keys, to share one Redis between applications."
+        },
+        "max_entries": {
+          "default": 10000,
+          "type": "integer",
+          "description": "Maximum entries of the in-process cache."
+        }
+      },
+      "additionalProperties": false
     },
-    "log_format": {
-      "default": "text",
-      "enum": [
-        "text",
-        "json"
-      ],
-      "type": "string",
-      "description": "Format of the log lines: text (coloured) or json (one object per line)."
+    "auth": {
+      "description": "Authentication: database, tokens, passwords, login protection.",
+      "type": "object",
+      "properties": {
+        "auth_database_url": {
+          "default": "",
+          "type": "string",
+          "description": "SQLAlchemy URL of the authentication database (users, groups, permissions). Prefer the environment variable or the .env file: do not commit it."
+        },
+        "secret_key": {
+          "default": "",
+          "type": "string",
+          "description": "Secret that signs the tokens: random string of at least 32 characters, required. Prefer the environment variable or the .env file: do not commit it."
+        },
+        "algorithm": {
+          "default": "HS256",
+          "enum": [
+            "HS256",
+            "HS384",
+            "HS512"
+          ],
+          "type": "string",
+          "description": "JWT signing algorithm."
+        },
+        "access_token_expire_minutes": {
+          "default": 30,
+          "minimum": 1,
+          "type": "integer",
+          "description": "Lifetime of an access token, in minutes."
+        },
+        "refresh_token_expire_days": {
+          "default": 7,
+          "minimum": 1,
+          "type": "integer",
+          "description": "Lifetime of a refresh token, in days."
+        },
+        "refresh_token_rotation": {
+          "default": true,
+          "type": "boolean",
+          "description": "Every refresh issues a new, single-use refresh token; a reused one revokes the login."
+        },
+        "refresh_reuse_grace_seconds": {
+          "default": 10,
+          "minimum": 0,
+          "type": "integer",
+          "description": "Grace seconds in which a reused refresh token is refused but the login is kept."
+        },
+        "registration_enabled": {
+          "default": false,
+          "type": "boolean",
+          "description": "Allow POST /auth/register (anyone can create an account); false answers 403."
+        },
+        "password_min_length": {
+          "default": 12,
+          "type": "integer",
+          "description": "Minimum length of a password."
+        },
+        "login_max_attempts": {
+          "default": 5,
+          "type": "integer",
+          "description": "Failed logins before the account is locked."
+        },
+        "login_lockout_minutes": {
+          "default": 15,
+          "type": "integer",
+          "description": "How long a locked account stays locked, in minutes."
+        },
+        "auth_rate_limit": {
+          "default": 0,
+          "maximum": 10000,
+          "minimum": 0,
+          "type": "integer",
+          "description": "Requests per client address and window on login, registration and MFA check; 0 is no limit."
+        },
+        "auth_rate_window_seconds": {
+          "default": 60,
+          "minimum": 1,
+          "type": "integer",
+          "description": "Length of the window of auth_rate_limit, in seconds."
+        }
+      },
+      "additionalProperties": false
     },
-    "log_level": {
-      "default": "",
-      "type": "string",
-      "description": "Log level of the application; empty means DEBUG with `debug`, INFO otherwise.",
-      "enum": [
-        "",
-        "CRITICAL",
-        "ERROR",
-        "WARNING",
-        "INFO",
-        "DEBUG"
-      ]
+    "mfa": {
+      "description": "Multi-factor authentication.",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean",
+          "description": "Enable multi-factor authentication."
+        },
+        "encryption_key": {
+          "default": "",
+          "type": "string",
+          "description": "Key of the TOTP secrets stored encrypted; empty: derived from secret_key. Prefer the environment variable or the .env file: do not commit it."
+        },
+        "max_attempts": {
+          "default": 5,
+          "type": "integer",
+          "description": "Wrong MFA codes allowed before the login challenge is discarded."
+        },
+        "otp_expire_minutes": {
+          "default": 10,
+          "type": "integer",
+          "description": "Minutes the user has to give the MFA code after the password."
+        },
+        "send_cooldown_seconds": {
+          "default": 30,
+          "maximum": 3600,
+          "minimum": 0,
+          "type": "integer",
+          "description": "Seconds between two codes sent by the email or SMS enrolment; 0 is no wait."
+        },
+        "totp_issuer": {
+          "default": "",
+          "type": "string",
+          "description": "Issuer shown by authenticator apps."
+        }
+      },
+      "additionalProperties": false
     },
-    "login_lockout_minutes": {
-      "default": 15,
-      "type": "integer",
-      "description": "How long a locked account stays locked, in minutes."
+    "tables": {
+      "description": "Names of the tables of the core (empty: table_prefix + default name).",
+      "type": "object",
+      "properties": {
+        "user_table": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the users table (empty: table_prefix + user)."
+        },
+        "group_table": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the groups table (empty: table_prefix + group)."
+        },
+        "permission_table": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the permissions table (empty: table_prefix + permission)."
+        },
+        "user_group_table": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the user-group table (empty: table_prefix + user_group)."
+        },
+        "user_permission_table": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the user-permission table (empty: table_prefix + user_permission)."
+        },
+        "group_permission_table": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the group-permission table (empty: table_prefix + group_permission)."
+        },
+        "user_settings_table": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the user settings table (empty: table_prefix + user_settings)."
+        },
+        "mfa_config_table": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the MFA configuration table (empty: table_prefix + mfa_config)."
+        },
+        "mfa_pending_table": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the pending MFA challenges table (empty: table_prefix + mfa_pending)."
+        }
+      },
+      "additionalProperties": false
     },
-    "login_max_attempts": {
-      "default": 5,
-      "type": "integer",
-      "description": "Failed logins before the account is locked."
+    "activity_log": {
+      "description": "Activity log of the write requests.",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean",
+          "description": "Record POST/PUT/PATCH/DELETE requests in the activity log and expose it."
+        },
+        "exclude_paths": {
+          "default": "refresh-token",
+          "type": "string",
+          "description": "Comma-separated path fragments that are never logged."
+        },
+        "retention_days": {
+          "default": 0,
+          "minimum": 0,
+          "type": "integer",
+          "description": "Days of activity log that `pachifast audit purge` keeps; 0 needs --days."
+        },
+        "table": {
+          "default": "",
+          "type": "string",
+          "description": "Name of the activity log table (empty: table_prefix + activity_log)."
+        }
+      },
+      "additionalProperties": false
     },
-    "mfa_config_table": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the MFA configuration table (empty: table_prefix + mfa_config)."
-    },
-    "mfa_enabled": {
-      "default": false,
-      "type": "boolean",
-      "description": "Enable multi-factor authentication."
-    },
-    "mfa_encryption_key": {
-      "default": "",
-      "type": "string",
-      "description": "Key of the TOTP secrets stored encrypted; empty: derived from secret_key. Prefer the environment variable or the .env file: do not commit it."
-    },
-    "mfa_max_attempts": {
-      "default": 5,
-      "type": "integer",
-      "description": "Wrong MFA codes allowed before the login challenge is discarded."
-    },
-    "mfa_otp_expire_minutes": {
-      "default": 10,
-      "type": "integer",
-      "description": "Minutes the user has to give the MFA code after the password."
-    },
-    "mfa_pending_table": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the pending MFA challenges table (empty: table_prefix + mfa_pending)."
-    },
-    "mfa_send_cooldown_seconds": {
-      "default": 30,
-      "maximum": 3600,
-      "minimum": 0,
-      "type": "integer",
-      "description": "Seconds between two codes sent by the email or SMS enrolment; 0 is no wait."
-    },
-    "mfa_totp_issuer": {
-      "default": "",
-      "type": "string",
-      "description": "Issuer shown by authenticator apps."
-    },
-    "password_min_length": {
-      "default": 12,
-      "type": "integer",
-      "description": "Minimum length of a password."
-    },
-    "permission_table": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the permissions table (empty: table_prefix + permission)."
-    },
-    "port": {
-      "default": 8000,
-      "maximum": 65535,
-      "minimum": 1,
-      "type": "integer",
-      "description": "Port of the development server."
-    },
-    "project_name": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the project, reported by /api/health/ (empty: the application title, default PachiFast)."
-    },
-    "refresh_reuse_grace_seconds": {
-      "default": 10,
-      "minimum": 0,
-      "type": "integer",
-      "description": "Grace seconds in which a reused refresh token is refused but the login is kept."
-    },
-    "refresh_token_expire_days": {
-      "default": 7,
-      "minimum": 1,
-      "type": "integer",
-      "description": "Lifetime of a refresh token, in days."
-    },
-    "refresh_token_rotation": {
-      "default": true,
-      "type": "boolean",
-      "description": "Every refresh issues a new, single-use refresh token; a reused one revokes the login."
-    },
-    "registration_enabled": {
-      "default": false,
-      "type": "boolean",
-      "description": "Allow POST /auth/register (anyone can create an account); false answers 403."
-    },
-    "request_id_enabled": {
-      "default": true,
-      "type": "boolean",
-      "description": "Put an X-Request-ID header on every response and the id in every log line."
-    },
-    "secret_key": {
-      "default": "",
-      "type": "string",
-      "description": "Secret that signs the tokens: random string of at least 32 characters, required. Prefer the environment variable or the .env file: do not commit it."
-    },
-    "swagger_noauth": {
-      "default": false,
-      "type": "boolean",
-      "description": "Let the Swagger UI (/docs) act as the first superuser without a token: development only."
-    },
-    "table_prefix": {
-      "default": "pachifast_",
-      "type": "string",
-      "description": "Prefix of every table name of the core."
-    },
-    "use_accept_language": {
-      "default": false,
-      "type": "boolean",
-      "description": "Pick the message language from the Accept-Language header of each request."
-    },
-    "user_group_table": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the user-group table (empty: table_prefix + user_group)."
-    },
-    "user_permission_table": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the user-permission table (empty: table_prefix + user_permission)."
-    },
-    "user_settings_table": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the user settings table (empty: table_prefix + user_settings)."
-    },
-    "user_table": {
-      "default": "",
-      "type": "string",
-      "description": "Name of the users table (empty: table_prefix + user)."
-    },
-    "version": {
-      "default": "",
-      "type": "string",
-      "description": "Version of the project, reported by /api/health/ (empty: the application version, default 0.1.0)."
-    },
-    "wrap_auth_token_response": {
-      "default": false,
-      "type": "boolean",
-      "description": "Wrap the login and refresh-token responses in the standard envelope."
+    "events": {
+      "description": "Event WebSocket.",
+      "type": "object",
+      "properties": {
+        "broadcast_enabled": {
+          "default": false,
+          "type": "boolean",
+          "description": "Open the event WebSocket (/api/core/events/ws)."
+        },
+        "allow_query_token": {
+          "default": false,
+          "type": "boolean",
+          "description": "Accept the access token in the WebSocket URL (?token=); false: one-time tickets only."
+        },
+        "public_types": {
+          "description": "Event types sent to every client (e.g. login); default: superusers and the user concerned.",
+          "default": [],
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "ticket_store": {
+          "default": "database",
+          "enum": [
+            "database",
+            "cache"
+          ],
+          "type": "string",
+          "description": "Where the WebSocket tickets live: the auth database (shared by workers) or the cache."
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

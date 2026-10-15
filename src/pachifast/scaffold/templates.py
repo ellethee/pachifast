@@ -118,22 +118,28 @@ def project_template_config_yaml() -> str:
     """Return the sample ``pachifast.yaml`` of a new project (all values optional)."""
     return """
     # yaml-language-server: $schema=./pachifast.schema.json
-    # Optional project configuration. Environment variables (PACHIFAST_*, also from .env) take
-    # precedence over the values in this file. Keys are the setting names, case-insensitive.
+    # Optional project configuration, grouped in sections. Environment variables (PACHIFAST_*, also from .env)
+    # take precedence over the values in this file. Keys are case-insensitive.
 
-    # Address of the development server (`pachifast dev`; --host/--port override it).
-    host: 127.0.0.1
-    port: 8000
+    server:
+      # Address of the development server (`pachifast dev`; --host/--port override it).
+      host: 127.0.0.1
+      port: 8000
+      # debug: true      # off by default; on shows the traceback page to clients: development only
 
     # Examples:
-    # debug: true      # off by default; on shows the traceback page to clients: development only
-    # access_token_expire_minutes: 30
-    # disable_core_routers: [permissions]
-    # disable_core_routes: [/user/settings]
-    # default_locale: it            # language of the API error messages (en, it); every error also has a stable `code`
-    # use_accept_language: true     # pick the language from the Accept-Language header of each request
+    # auth:
+    #   access_token_expire_minutes: 30
+    # routes:
+    #   disable_core_routers: [permissions]
+    #   disable_core_routes: [/user/settings]
+    # app:
+    #   default_locale: it            # language of the API error messages (en, it)
+    #   use_accept_language: true     # pick the language from the Accept-Language header of each request
+    # cache:
+    #   url: redis://localhost:6379/0 # shared cache (needs pachifast[redis]); empty: in-process
 
-    # Keep secrets (secret_key, database URLs with passwords) in .env, not here.
+    # Keep secrets (auth.secret_key, database URLs with passwords) in .env, not here.
     """
 
 

@@ -8,6 +8,7 @@ from typer.testing import CliRunner
 
 from pachifast.cli.app import app
 from pachifast.config.schema import DESCRIPTIONS, build_config_schema
+from pachifast.config.sections import SECTIONS
 from pachifast.config.settings import PachifastSettings
 from pachifast.scaffold import templates
 
@@ -23,24 +24,34 @@ def test_every_setting_has_a_description() -> None:
     assert names == set(DESCRIPTIONS), "describe new settings in config/schema.py"
 
 
-def test_the_schema_is_valid_and_lists_lower_case_keys() -> None:
+def test_the_schema_is_valid_and_lists_lower_case_keys_per_section() -> None:
     schema = build_config_schema()
     jsonschema.Draft202012Validator.check_schema(schema)
-    assert "secret_key" in schema["properties"] and "SECRET_KEY" not in schema["properties"]
+    assert list(schema["properties"]) == list(SECTIONS)
+    assert schema["additionalProperties"] is True
+    for name, section in schema["properties"].items():
+        assert section["additionalProperties"] is False and section["description"]
+        assert list(section["properties"]) == [key for key, _ in SECTIONS[name]]
+    assert "secret_key" in schema["properties"]["auth"]["properties"]
+    assert "SECRET_KEY" not in schema["properties"]["auth"]["properties"]
+    assert schema["properties"]["cache"]["properties"]["url"]["pattern"]
+    assert schema["properties"]["server"]["properties"]["port"]["maximum"] == 65535
+
+
+def test_the_demo_configuration_validates() -> None:
+    _validate(yaml.safe_load((ROOT / "examples" / "demo" / "pachifast.yaml").read_text(encoding="utf-8")))
 
 
 def test_the_sample_configuration_and_a_full_one_validate() -> None:
     _validate(yaml.safe_load(templates.project_template_config_yaml()))
     _validate(
         {
-            "port": 9000,
-            "debug": True,
-            "log_level": "info".upper(),
-            "disable_core_routers": ["permissions"],
-            "events_public_types": "login,logout",
-            "cache_url": "redis://localhost/0",
-            "default_locale": "pt-BR",
-            "events_ticket_store": "cache",
+            "server": {"port": 9000, "debug": True},
+            "log": {"log_level": "info".upper()},
+            "routes": {"disable_core_routers": ["permissions"]},
+            "events": {"public_types": "login,logout", "ticket_store": "cache"},
+            "cache": {"url": "redis://localhost/0"},
+            "app": {"default_locale": "pt-BR"},
             "my_own_setting": {"anything": 1},
         }
     )
@@ -49,14 +60,16 @@ def test_the_sample_configuration_and_a_full_one_validate() -> None:
 @pytest.mark.parametrize(
     "data",
     [
-        {"port": 0},
-        {"port": "http"},
-        {"debug": "maybe"},
-        {"log_level": "LOUD"},
-        {"events_ticket_store": "disk"},
-        {"cache_url": "http://nope"},
-        {"default_locale": "not a tag"},
-        {"disable_routes": [1]},
+        {"server": {"port": 0}},
+        {"server": {"port": "http"}},
+        {"server": {"debug": "maybe"}},
+        {"log": {"log_level": "LOUD"}},
+        {"events": {"ticket_store": "disk"}},
+        {"cache": {"url": "http://nope"}},
+        {"app": {"default_locale": "not a tag"}},
+        {"routes": {"disable_routes": [1]}},
+        {"server": {"prot": 1}},
+        {"server": 8000},
     ],
 )
 def test_wrong_values_are_refused(data: dict) -> None:
@@ -67,6 +80,13 @@ def test_wrong_values_are_refused(data: dict) -> None:
 def test_the_committed_schema_is_up_to_date() -> None:
     committed = json.loads((ROOT / "docs" / "reference" / "pachifast.schema.json").read_text(encoding="utf-8"))
     assert committed == build_config_schema(), "run: uv run python scripts/gen_reference.py"
+
+
+def test_the_demo_schema_is_up_to_date() -> None:
+    committed = json.loads((ROOT / "examples" / "demo" / "pachifast.schema.json").read_text(encoding="utf-8"))
+    assert committed == build_config_schema(), (
+        "run: uv run pachifast config schema -o examples/demo/pachifast.schema.json"
+    )
 
 
 def test_cli_prints_and_writes_the_schema(tmp_path: Path) -> None:

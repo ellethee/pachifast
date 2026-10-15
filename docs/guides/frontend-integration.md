@@ -269,7 +269,7 @@ CORS is **not** enabled by default. `create_app(modules, cors_origins=[...])` in
 # yaml-language-server: $schema=./pachifast.schema.json
 ```
 
-With an editor that supports `yaml-language-server` (VS Code with the YAML extension, JetBrains IDEs) you get completion and validation of setting names and values. Regenerate the file after upgrading pachifast:
+With an editor that supports `yaml-language-server` (VS Code with the YAML extension, JetBrains IDEs) you get completion and validation of section names, setting names and values. Regenerate the file after upgrading pachifast:
 
 ```bash
 pachifast config schema --output pachifast.schema.json

@@ -129,14 +129,15 @@ No event is broadcast to everybody by default. An event reaches the superusers p
 
 ### Public event types
 
-To tell every connected user that, for example, somebody has logged in or out, list the types in `events_public_types` (comma separated in the environment, a list in YAML):
+To tell every connected user that, for example, somebody has logged in or out, list the types in `events_public_types` (comma separated in the environment, a list in YAML as `events.public_types`):
 
 ```env
 PACHIFAST_EVENTS_PUBLIC_TYPES=login,logout
 ```
 
 ```yaml
-events_public_types: [login, logout]
+events:
+  public_types: [login, logout]
 ```
 
 Listed types go to **all** connected clients.
