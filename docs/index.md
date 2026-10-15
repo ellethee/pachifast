@@ -12,7 +12,7 @@ structure. It ships a CLI that generates projects and modules, built-in authenti
 multi-database Alembic migrations, a uniform API contract (response envelope, stable error codes, localized messages)
 and the tooling to share that contract with a frontend.
 
-Version: **<!-- version -->0.15.0<!-- /version -->** - Author: **ilPachi** - License: **MIT** - Status: alpha (0.x, minor releases may contain breaking changes).
+Version: **<!-- version -->0.16.0<!-- /version -->** - Author: **ilPachi** - License: **MIT** - Status: alpha (0.x, minor releases may contain breaking changes).
 
 ## Where to start
 

@@ -249,7 +249,7 @@ def test_new_project_interactive_prompts_only_for_missing_options(tmp_path: Path
     assert project["authors"] == [{"name": "Ada", "email": "ada@example.org"}]
     assert project["license"] == "Apache-2.0"
     assert project["keywords"] == ["a", "b"]
-    assert project["dependencies"] == ["pachifast>=0.15.0", "httpx>=0.27,<1", "rich"]
+    assert project["dependencies"] == ["pachifast>=0.16.0", "httpx>=0.27,<1", "rich"]
     assert _pyproject(tmp_path / "demo")["dependency-groups"] == {"dev": ["pytest"]}
 
 
@@ -369,7 +369,7 @@ def test_new_project_without_packages_has_no_dev_group(tmp_path: Path) -> None:
         == 0
     )
     data = _pyproject(tmp_path / "demo")
-    assert data["project"]["dependencies"] == ["pachifast>=0.15.0"]
+    assert data["project"]["dependencies"] == ["pachifast>=0.16.0"]
     assert "dependency-groups" not in data
 
 

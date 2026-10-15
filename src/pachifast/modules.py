@@ -54,7 +54,7 @@ class AppModule:
     locale_package: str | None = (
         None  # package holding the messages (<language>.py with MESSAGES), e.g. "apps.billing.locale"
     )
-    #: versions of pachifast the module works with, a PEP 440 specifier such as ">=0.15,<0.16"; checked at startup
+    #: versions of pachifast the module works with, a PEP 440 specifier such as ">=0.16,<0.17"; checked at startup
     requires_pachifast: str | None = None
 
 

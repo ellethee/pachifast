@@ -6,7 +6,7 @@ pachifast is in alpha. Only the latest released minor version receives security 
 
 | Version | Supported |
 | --- | --- |
-| latest minor (0.15.x) | yes |
+| latest minor (0.16.x) | yes |
 | older versions | no: upgrade, see [Upgrading](docs/guides/upgrading.md) |
 
 ## Reporting a vulnerability

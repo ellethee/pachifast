@@ -21,11 +21,11 @@ Anything not listed (the layout of the package, private helpers, the log format,
 
 pachifast follows [semantic versioning](https://semver.org/), with the usual allowance for `0.x`:
 
-- a **patch** release (`0.15.0` to `0.15.1`) contains fixes only and never breaks anything above;
-- a **minor** release (`0.15.x` to `0.16.0`) may break: it is the only moment where a setting, a route, a default or the schema changes in an incompatible way;
+- a **patch** release (`0.16.0` to `0.16.1`) contains fixes only and never breaks anything above;
+- a **minor** release (`0.16.x` to `0.17.0`) may break: it is the only moment where a setting, a route, a default or the schema changes in an incompatible way;
 - `1.0` will freeze the stable rows of the table and stop breaking changes outside a major release.
 
-Pin the minor in your project (`pachifast>=0.15,<0.16`) and read [Upgrading](upgrading.md) and the [changelog](../changelog.md) before moving it.
+Pin the minor in your project (`pachifast>=0.16,<0.17`) and read [Upgrading](upgrading.md) and the [changelog](../changelog.md) before moving it.
 
 ## Deprecation
 

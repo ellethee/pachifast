@@ -22,14 +22,14 @@ A breaking change is listed in the changelog (under **Changed**, marked **Breaki
 While the major version is 0, pin the minor in your project so that a breaking release never arrives by surprise:
 
 ```text
-pachifast>=0.15,<0.16
+pachifast>=0.16,<0.17
 ```
 
 Move the pin only after reading the changelog of the new minor.
 
 ## Upgrade notes
 
-### Unreleased: `pachifast.yaml` in sections
+### From 0.15 to 0.16: `pachifast.yaml` in sections
 
 The settings of `pachifast.yaml` are now grouped in sections (`app`, `server`, `dev`, `log`, `routes`, `database`, `cache`, `auth`, `mfa`, `tables`, `activity_log`, `events`). Flat top-level keys (the 0.15 format) are still read, but each file logs one deprecation warning that lists the new location of every key; move them when convenient. Unknown keys inside a section are now an error, and the same setting given both flat and in its section is an error.
 

@@ -98,7 +98,7 @@ module = AppModule(name="mine", setup_hooks=(install,))
 An extension is an ordinary Python package that exports an `AppModule` (routers, settings, hooks, migration targets), which a project lists in its `project_modules.py` like its own modules. By convention:
 
 - the distribution is called `pachifast-<name>` and the module lives in `pachifast_<name>` (`pachifast_<name>.module:module`);
-- the module sets `requires_pachifast`, a PEP 440 specifier such as `">=0.15,<0.16"`: at startup pachifast refuses a module that needs another version and says which, instead of failing later in some route;
+- the module sets `requires_pachifast`, a PEP 440 specifier such as `">=0.16,<0.17"`: at startup pachifast refuses a module that needs another version and says which, instead of failing later in some route;
 - it takes its settings from the `PACHIFAST_*` environment and `pachifast.yaml` like the rest, and documents them.
 
 `pachifast-metrics` (a `/metrics` endpoint for Prometheus, with a request middleware) is the first one and the model to copy. It is installed from PyPI, and listed in `project_modules.py`:
