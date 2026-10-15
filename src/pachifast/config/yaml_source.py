@@ -14,7 +14,7 @@ YAML file, defaults. The file is organised in sections (see ``sections``), keys 
     server:
       port: 9000
 
-The flat format of 0.15 (``port: 9000`` at the top level) is still read but deprecated.
+A top-level key that is the name of a core setting (the flat format of 0.15) is an error that names its section.
 """
 
 import difflib
@@ -34,7 +34,6 @@ log = logging.getLogger(__name__)
 CONFIG_FILE_VAR = "PACHIFAST_CONFIG_FILE"
 _FIXED_NAMES = ("pachifast",)
 _SUFFIXES = (".yaml", ".yml")
-_WARNED: set[tuple[Path, tuple[str, ...]]] = set()  # deprecation warnings already logged: once per file
 
 
 def candidate_paths(base_dir: Path) -> list[Path]:
@@ -59,14 +58,15 @@ def find_config_file(base_dir: Path | None = None) -> Path | None:
 
 
 def _flatten(data: dict[str, Any], path: Path) -> dict[str, Any]:
-    """Turn the parsed file into ``{field_name: value}``: sections are flattened, flat keys are still accepted.
+    """Turn the parsed file into ``{field_name: value}``: sections are flattened.
 
     Raises:
-        ValueError: A section that is not a mapping, an unknown key in a section, or a field given twice.
+        ValueError: A section that is not a mapping, an unknown key in a section, a field given twice, or a core
+            setting at the top level (flat format).
     """
     flat: dict[str, Any] = {}
     origin: dict[str, str] = {}  # field -> where it was given, to report duplicates
-    deprecated: list[str] = []
+    misplaced: list[str] = []
     locations = field_locations()
     for raw_key, value in data.items():
         key = str(raw_key).lower()
@@ -88,13 +88,17 @@ def _flatten(data: dict[str, Any], path: Path) -> dict[str, Any]:
                 _store(flat, origin, valid[name], item, f"{key}.{name}", path)
         else:
             if key in locations:
-                deprecated.append(key)
+                misplaced.append(key)
+                continue
             # other keys belong to the project or to an app (own settings class): kept for it
             _store(flat, origin, key, value, key, path)
-    if deprecated and (path, tuple(deprecated)) not in _WARNED:
-        _WARNED.add((path, tuple(deprecated)))
-        moved = ", ".join(f"{key} -> {locations[key]}" for key in deprecated)
-        log.warning("%s: flat keys are deprecated, move them into their section (%s).", path, moved)
+    if misplaced:
+        lines = "; ".join(
+            f"'{key}' is no longer a top-level key: put it in the '{locations[key].split('.')[0]}' section "
+            f"({locations[key]})"
+            for key in sorted(misplaced)
+        )
+        raise ValueError(f"{path}: {lines}.")
     return flat
 
 
@@ -113,11 +117,12 @@ def _store(flat: dict[str, Any], origin: dict[str, str], field: str, value: Any,
 def load_config_data(base_dir: Path | None = None) -> dict[str, Any]:
     """Load the YAML config file as a flat dict ``{field_name_lower: value}`` (``{}`` when there is no file).
 
-    The file is organised in sections (``server: {port: 9000}``); top-level setting names of the old flat format are
-    still read, with a deprecation warning. Keys with a ``null`` value are ignored.
+    The file is organised in sections (``server: {port: 9000}``); top-level setting names of the old flat format
+    are rejected. Other top-level keys are passed through. Keys with a ``null`` value are ignored.
 
     Raises:
-        ValueError: If the file is not valid YAML, its top level is not a mapping, or a section is malformed.
+        ValueError: If the file is not valid YAML, its top level is not a mapping, a section is malformed, or a core
+            setting is at the top level.
     """
     path = find_config_file(base_dir)
     if path is None:

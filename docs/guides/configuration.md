@@ -103,7 +103,7 @@ The rule is simple: a key is the name of the setting, and in the `cache`, `mfa`,
 
 Mistakes are caught early: a section that is not a mapping, an unknown key inside a section (the message suggests the closest valid key), or the same setting given twice, stop the startup with an error that names the file. Keys at the top level that are not sections are left alone, so a project or an app can keep its own settings there.
 
-> **Deprecated**: the flat format of 0.15 (`port: 9000` at the top level of the file) is still read, but logs a warning that lists the `section.key` to use instead. See [Upgrading](upgrading.md#upgrade-notes).
+> The flat format of 0.15 (`port: 9000` at the top level of the file) is no longer accepted: the startup stops with a message that lists the `section.key` to use instead. The conversion table is in [Upgrading](upgrading.md#upgrade-notes).
 
 ### How the file is found
 

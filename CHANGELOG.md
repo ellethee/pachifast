@@ -10,7 +10,7 @@ All notable changes to pachifast are documented here. The format follows
 
 ### Changed
 
-- **`pachifast.yaml` is organised in sections** (`app`, `server`, `dev`, `log`, `routes`, `database`, `cache`, `auth`, `mfa`, `tables`, `activity_log`, `events`), for example `server: {port: 9000}`. The flat keys of 0.15 are still read but deprecated: one warning per file lists the `section.key` to use. An unknown key inside a section, a section that is not a mapping, or the same setting given twice (flat and nested) is now an error. The JSON Schema (`pachifast config schema`, new projects, `docs/reference`) is regenerated with one object per section, and the settings reference shows the YAML location of every setting. See [Upgrade notes](https://pachifast.ilpachi.it/guides/upgrading/#upgrade-notes).
+- **`pachifast.yaml` is organised in sections** (`app`, `server`, `dev`, `log`, `routes`, `database`, `cache`, `auth`, `mfa`, `tables`, `activity_log`, `events`), for example `server: {port: 9000}`. The flat keys of 0.15 are no longer read: a core setting at the top level is an error that lists the `section.key` where to put it. An unknown key inside a section, a section that is not a mapping, or the same setting given twice is also an error. The JSON Schema (`pachifast config schema`, new projects, `docs/reference`) is regenerated with one object per section, and the settings reference shows the YAML location of every setting. See [Upgrade notes](https://pachifast.ilpachi.it/guides/upgrading/#upgrade-notes).
 
 ## [0.15.0] - 2026-10-14
 

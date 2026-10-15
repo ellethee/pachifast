@@ -31,7 +31,7 @@ Move the pin only after reading the changelog of the new minor.
 
 ### From 0.15 to 0.16: `pachifast.yaml` in sections
 
-The settings of `pachifast.yaml` are now grouped in sections (`app`, `server`, `dev`, `log`, `routes`, `database`, `cache`, `auth`, `mfa`, `tables`, `activity_log`, `events`). Flat top-level keys (the 0.15 format) are still read, but each file logs one deprecation warning that lists the new location of every key; move them when convenient. Unknown keys inside a section are now an error, and the same setting given both flat and in its section is an error.
+The settings of `pachifast.yaml` are now grouped in sections (`app`, `server`, `dev`, `log`, `routes`, `database`, `cache`, `auth`, `mfa`, `tables`, `activity_log`, `events`). Flat top-level keys (the 0.15 format) are no longer read: a file that still has one stops the startup with an error that lists the new location of every key, so convert the file before upgrading. Unknown keys inside a section are also an error.
 
 To convert a file, put every key under its section: the key keeps its name, except in the four prefixed sections, where the section replaces the prefix. The [Settings reference](../reference/settings.md) lists the section of every setting.
 

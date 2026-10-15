@@ -1,6 +1,5 @@
 """YAML configuration file: discovery, priority (env > .env > YAML > defaults), errors, dev address."""
 
-import logging
 import os
 from pathlib import Path
 
@@ -167,22 +166,30 @@ def test_null_values_are_ignored(tmp_path: Path) -> None:
     assert load_config_data(tmp_path) == {"log_level": "DEBUG"}
 
 
-def test_flat_keys_still_work_with_one_warning(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
-    (tmp_path / "pachifast.yaml").write_text("port: 9400\nCACHE_URL: redis://x/0\n")
-    with caplog.at_level(logging.WARNING, logger="pachifast.config.yaml_source"):
-        assert load_config_data(tmp_path) == {"port": 9400, "cache_url": "redis://x/0"}
-        load_config_data(tmp_path)  # a second load of the same file does not repeat the warning
-    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
-    assert len(warnings) == 1
-    message = warnings[0].getMessage()
-    assert "port -> server.port" in message and "cache_url -> cache.url" in message
-    assert _settings(tmp_path).port == 9400
-
-
-def test_the_same_field_flat_and_nested_is_an_error(tmp_path: Path) -> None:
-    (tmp_path / "pachifast.yaml").write_text("port: 1\nserver:\n  port: 2\n")
-    with pytest.raises(ValueError, match="'port' is given twice"):
+def test_a_flat_core_key_is_an_error_with_its_new_location(tmp_path: Path) -> None:
+    (tmp_path / "pachifast.yaml").write_text("port: 9400\n")
+    with pytest.raises(
+        ValueError,
+        match=r"pachifast.yaml: 'port' is no longer a top-level key: put it in the 'server' section \(server.port\)\.",
+    ):
         load_config_data(tmp_path)
+
+
+def test_all_the_flat_keys_are_listed_in_one_message(tmp_path: Path) -> None:
+    (tmp_path / "pachifast.yaml").write_text("port: 1\nCACHE_URL: redis://x/0\nactivity_log_retention_days: 5\n")
+    with pytest.raises(ValueError) as info:
+        load_config_data(tmp_path)
+    message = str(info.value)
+    assert "'activity_log_retention_days'" in message and "(activity_log.retention_days)" in message
+    assert "'cache_url'" in message and "(cache.url)" in message
+    assert "'port'" in message and "(server.port)" in message
+    assert message.index("activity_log_retention_days") < message.index("cache_url") < message.index("'port'")
+
+
+def test_unknown_top_level_keys_are_still_passed_through(tmp_path: Path) -> None:
+    (tmp_path / "pachifast.yaml").write_text("billing_database_url: sqlite://x\nserver:\n  port: 9400\n")
+    assert load_config_data(tmp_path) == {"billing_database_url": "sqlite://x", "port": 9400}
+    assert _settings(tmp_path).port == 9400
 
 
 def test_unknown_key_in_a_section_is_an_error_with_a_hint(tmp_path: Path) -> None:
