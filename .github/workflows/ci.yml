@@ -38,7 +38,7 @@ jobs:
     env:
       PACHIFAST_TEST_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
       - name: Install the dependencies
         run: uv sync --frozen --python ${{ matrix.python }}
@@ -56,7 +56,7 @@ jobs:
   lowest-direct:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
       - name: Install the oldest allowed dependencies
         run: uv sync --resolution lowest-direct --python 3.11
