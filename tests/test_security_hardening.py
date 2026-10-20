@@ -509,15 +509,16 @@ def test_parallel_password_guesses_are_limited_before_they_are_checked(
                     return await security.authenticate_user(session, "ann", password)
 
             guesses = [f"wrong-{i}" for i in range(2 * limit + 8)]
-            guesses.insert(2 * limit, PASSWORD)  # the right one arrives late in the burst
-            return list(await asyncio.gather(*(attempt(g) for g in guesses)))
+            burst_results = list(await asyncio.gather(*(attempt(g) for g in guesses)))
+            # a right password does clear the failures, so it must not take part in the race: it comes after
+            return [*burst_results, await attempt(PASSWORD)]
 
         finally:
             await engine.dispose()
 
     results = asyncio.run(burst())
     assert len(checks) <= limit, f"{len(checks)} password checks ran for a limit of {limit}"
-    assert sum(result is not None for result in results) <= 1  # at most the right password, never twice
+    assert all(result is None for result in results)  # the account is locked: not even the right password gets in
 
 
 # --- finding 9 and 13: changing the password, and no uncounted password oracle -------
