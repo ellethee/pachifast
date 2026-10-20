@@ -3,7 +3,7 @@
 
 # Settings reference
 
-Generated for pachifast **0.16.1**.
+Generated for pachifast **0.17.0**.
 
 Every setting can be given in a section of `pachifast.yaml` (`section.key`, case-insensitive), as an environment variable `PACHIFAST_<NAME>` or in `.env`; see [Configuration](../guides/configuration.md) for the priority between sources. A [JSON Schema](pachifast.schema.json) of the file is available for editors.
 
