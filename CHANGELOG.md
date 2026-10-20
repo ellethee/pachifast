@@ -6,6 +6,12 @@ All notable changes to pachifast are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.17.1] - 2026-10-20
+
+### Fixed
+
+- Refresh with the cookie, repeated inside `refresh_reuse_grace_seconds` with the token the server had just rotated, gets a new token of the same login instead of a 401. A reload used to cancel the first refresh after the server rotated the token but before the browser received the new cookie, and the retry logged the user out. A refresh with a body token is unchanged.
+
 ## [0.17.0] - 2026-10-20
 
 ### Added

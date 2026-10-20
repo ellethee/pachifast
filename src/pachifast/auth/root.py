@@ -167,7 +167,8 @@ async def refresh_access_token(
         raise api_error(
             status.HTTP_401_UNAUTHORIZED, "auth.refresh_token_revoked", loc=("body", "refresh_token")
         ) from None
-    new_refresh = await rotate_refresh_token(session, token_payload, user.id)
+    from_cookie = not (payload and payload.refresh_token)
+    new_refresh = await rotate_refresh_token(session, token_payload, user.id, regrant_in_grace=from_cookie)
     set_refresh_cookie(response, request, new_refresh)
     return token_body(create_access_token(str(user.id)), new_refresh)
 

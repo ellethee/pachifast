@@ -143,12 +143,16 @@ async def issue_refresh_token(session: AsyncSession, user_id: uuid.UUID, *, fami
     return _refresh_jwt(user_id, jti, family)
 
 
-async def rotate_refresh_token(session: AsyncSession, payload: dict[str, Any], user_id: uuid.UUID) -> str | None:
+async def rotate_refresh_token(
+    session: AsyncSession, payload: dict[str, Any], user_id: uuid.UUID, *, regrant_in_grace: bool = False
+) -> str | None:
     """Spend a refresh token. Returns the next one of the same login (or ``None`` with ``refresh_token_rotation``
     off, where the token stays valid).
 
     The token is marked used with one conditional ``UPDATE``: of several parallel requests with the same token
     exactly one wins. A token that was already used was presented twice, so it leaked: the whole login is revoked.
+    Inside the grace window the second request is refused, unless ``regrant_in_grace``: then it gets one more token of
+    the same login (the cookie flow, where the browser may never have received the first answer).
 
     Raises:
         HTTPException: 401 ``auth.refresh_token_revoked`` for an unknown, expired, revoked or reused token.
@@ -186,6 +190,16 @@ async def rotate_refresh_token(session: AsyncSession, payload: dict[str, Any], u
         )
         grace = timedelta(seconds=get_settings().refresh_reuse_grace_seconds)
         if newest is not None and utcnow() - as_utc(newest) <= grace:
+            if regrant_in_grace:
+                alive = await session.scalar(
+                    select(RefreshTokenRecord.jti).where(
+                        RefreshTokenRecord.jti == jti,
+                        RefreshTokenRecord.user_id == user_id,
+                        RefreshTokenRecord.expires_at > utcnow(),
+                    )
+                )
+                if alive is not None:
+                    return await issue_refresh_token(session, user_id, family=family)
             raise revoked
         log.warning("Refresh token reused: login %s revoked (user %s)", family, user_id)
         await revoke_refresh_family(session, family)

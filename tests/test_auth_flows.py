@@ -982,16 +982,25 @@ def test_cookie_reuse_after_the_grace_window_revokes_the_login(env: Env) -> None
     assert client.post("/api/auth/refresh-token", headers=CSRF).status_code == 401  # the family is gone
 
 
-def test_two_quick_cookie_refreshes_keep_the_login(env: Env) -> None:
+def test_a_cookie_refresh_repeated_in_the_grace_window_gets_another_token(env: Env) -> None:
+    """A reload can cancel the first refresh after the server rotated: the retry must not lose the login."""
     client = env.build(refresh_mode="cookie")
     login(client, "ann")
     spent = client.cookies.get("pachifast_refresh")
     assert client.post("/api/auth/refresh-token", headers=CSRF).status_code == 200
-    newest = client.cookies.get("pachifast_refresh")
-    client.cookies.set("pachifast_refresh", spent)  # the other tab still had the old cookie
-    assert client.post("/api/auth/refresh-token", headers=CSRF).status_code == 401
-    client.cookies.set("pachifast_refresh", newest)  # inside the grace window the login survives
-    assert client.post("/api/auth/refresh-token", headers=CSRF).status_code == 200
+    client.cookies.clear()
+    client.cookies.set("pachifast_refresh", spent, path="/api/auth")  # the browser still has the old cookie
+    again = client.post("/api/auth/refresh-token", headers=CSRF)
+    assert again.status_code == 200, again.text
+    assert _cookie(again) and spent not in _cookie(again)
+
+
+def test_a_body_refresh_repeated_in_the_grace_window_is_still_refused(env: Env) -> None:
+    client = env.build(refresh_mode="both")
+    token = login(client, "ann").json()["refresh_token"]
+    client.cookies.clear()
+    assert refresh(client, token).status_code == 200
+    assert refresh(client, token).status_code == 401
 
 
 def test_cookie_logout_revokes_the_login_and_clears_the_cookie(env: Env) -> None:
