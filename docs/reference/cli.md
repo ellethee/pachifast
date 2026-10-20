@@ -3,7 +3,7 @@
 
 # CLI reference
 
-Generated for pachifast **0.16.0**.
+Generated for pachifast **0.16.1**.
 
 Run `pachifast <command> --help` for the same information in the terminal. Commands that read a project accept `--base-dir` (the project root, default `.`).
 

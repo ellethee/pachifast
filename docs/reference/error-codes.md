@@ -3,7 +3,7 @@
 
 # Message codes
 
-Generated for pachifast **0.16.0**.
+Generated for pachifast **0.16.1**.
 
 Every error carries a stable `code` (and `params` for its `{placeholders}`); clients translate from the code. See [Errors and i18n](../guides/errors-and-i18n.md). Codes of your own modules are listed by `pachifast locale check`.
 

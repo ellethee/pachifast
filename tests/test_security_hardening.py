@@ -1151,3 +1151,9 @@ def test_no_get_route_answers_500_on_odd_query_or_path_values(env: Env) -> None:
                 if response.status_code >= 500:
                     failures.append(f"{response.status_code} GET {url} {query}")
     assert not failures, "\n".join(failures[:20])
+
+
+def test_a_nul_character_in_a_list_search_is_a_422(env: Env) -> None:
+    client = env.build()
+    response = client.get("/api/admin/user?search=a%00b", headers=env.token("boss"))
+    assert response.status_code == 422, response.text

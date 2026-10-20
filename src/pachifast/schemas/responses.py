@@ -60,6 +60,15 @@ class PageParams(AliasedBaseModel):
     orderBy: str | None = Query(None, description="Field to order by")
     search: str | None = Query(None, description="Search term to filter the results")
 
+    @model_validator(mode="after")
+    def _no_nul_bytes(self) -> "PageParams":
+        """PostgreSQL cannot store or compare a NUL character: refuse it with a 422 instead of failing with a 500."""
+        for name in type(self).model_fields:
+            value = getattr(self, name, None)
+            if isinstance(value, str) and "\x00" in value:
+                raise ValueError(f"{name} must not contain NUL characters")
+        return self
+
     search_fields: ClassVar[list[str]] = []
     #: columns a client may sort by; ``None`` means every mapped column
     order_fields: ClassVar[list[str] | None] = None
