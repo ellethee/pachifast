@@ -22,6 +22,7 @@
   "api.invalid_order_by": [
     "field"
   ],
+  "api.rate_limited": [],
   "auth.csrf_rejected": [],
   "auth.invalid_credentials": [],
   "auth.not_authenticated": [],

@@ -53,6 +53,7 @@ MESSAGES: dict[str, str] = {
     "db.conflict": "The change conflicts with existing data (a duplicate or a missing related record)",
     "db.invalid_value": "The database refused a value (too long or out of range)",
     "auth.password_unchanged": "The new password must be different from the current one",
+    "api.rate_limited": "Too many requests: try again later",
     "auth.rate_limited": "Too many requests from this address: try again later",
     "health.not_ready": "Service not ready: the database cannot be reached",
     "user.profile_not_configured": "Profile fields were sent, but this project has no profile",

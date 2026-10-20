@@ -93,7 +93,7 @@ def create_app(
             allow_origins=list(cors_origins),
             allow_headers=["*"],
             allow_methods=["*"],
-            expose_headers=["Retry-After"],
+            expose_headers=["Retry-After", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
         )
 
     if settings.use_accept_language:

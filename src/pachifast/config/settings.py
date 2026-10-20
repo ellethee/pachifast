@@ -112,6 +112,9 @@ class PachifastSettings(ServerSettings):
     refresh_cookie_secure: bool | None = None
     # origins besides the host of the request that may use the cookie, comma separated
     refresh_allowed_origins: str = ""
+    # requests per window that rate_limit() allows a route that gives no limit; 0 = no limit
+    rate_limit_default: int = Field(default=0, ge=0)
+    rate_limit_window_seconds: int = Field(default=60, ge=1)
     registration_enabled: bool = False
     AUTH_DATABASE_URL: str = ""
     auto_create_auth_schema: bool = False

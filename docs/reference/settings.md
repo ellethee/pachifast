@@ -3,7 +3,7 @@
 
 # Settings reference
 
-Generated for pachifast **0.17.1**.
+Generated for pachifast **0.18.0**.
 
 Every setting can be given in a section of `pachifast.yaml` (`section.key`, case-insensitive), as an environment variable `PACHIFAST_<NAME>` or in `.env`; see [Configuration](../guides/configuration.md) for the priority between sources. A [JSON Schema](pachifast.schema.json) of the file is available for editors.
 
@@ -97,3 +97,6 @@ Every setting can be given in a section of `pachifast.yaml` (`section.key`, case
 | `events_allow_query_token` | `events.allow_query_token` | `PACHIFAST_EVENTS_ALLOW_QUERY_TOKEN` | boolean | `false` | Accept the access token in the WebSocket URL (?token=); false: one-time tickets only. |
 | `events_public_types` | `events.public_types` | `PACHIFAST_EVENTS_PUBLIC_TYPES` | list or comma-separated string |  | Event types sent to every client (e.g. login); default: superusers and the user concerned. |
 | `events_ticket_store` | `events.ticket_store` | `PACHIFAST_EVENTS_TICKET_STORE` | `database` \| `cache` | `database` | Where the WebSocket tickets live: the auth database (shared by workers) or the cache. |
+| **rate_limit** | | | | | Defaults of the `rate_limit()` dependency for the routes that use it. |
+| `rate_limit_default` | `rate_limit.default` | `PACHIFAST_RATE_LIMIT_DEFAULT` | integer | `0` | Requests per window that `rate_limit()` allows a route with no limit of its own; 0 is none. |
+| `rate_limit_window_seconds` | `rate_limit.window_seconds` | `PACHIFAST_RATE_LIMIT_WINDOW_SECONDS` | integer | `60` | Length of the window of `rate_limit()`, in seconds. |

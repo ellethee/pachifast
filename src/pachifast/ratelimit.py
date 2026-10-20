@@ -12,10 +12,14 @@ request would look like it comes from the proxy and share one budget. Run uvicor
 
 from __future__ import annotations
 
+import inspect
 import ipaddress
 import time
+from collections.abc import Awaitable, Callable
+from typing import Literal
 
-from fastapi import Request, status
+import jwt
+from fastapi import Request, Response, status
 
 from pachifast.cache import get_cache
 from pachifast.config import get_settings
@@ -59,3 +63,87 @@ async def enforce_auth_rate_limit(request: Request) -> None:
         loc=("body",),
         headers={"Retry-After": str(retry_after)},
     )
+
+
+KeyFunction = Callable[[Request], "str | None | Awaitable[str | None]"]
+RateLimitKey = Literal["ip", "user"] | KeyFunction
+
+
+def _bearer_subject(request: Request) -> str | None:
+    """The user id of a valid access token in the ``Authorization`` header, without touching the database."""
+    scheme, _, token = request.headers.get("authorization", "").partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        return None
+    settings = get_settings()
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM], options={"require": ["exp", "sub"]}
+        )
+    except jwt.PyJWTError:
+        return None
+    return str(payload["sub"]) if payload.get("type") == "access" else None
+
+
+async def _who(request: Request, key: RateLimitKey) -> str:
+    """The name a request is counted under: ``key:<value>``, ``user:<id>`` or ``ip:<address>``."""
+    if callable(key):
+        value = key(request)
+        value = await value if inspect.isawaitable(value) else value
+        if value:
+            return f"key:{value}"
+    elif key == "user" and (subject := _bearer_subject(request)):
+        return f"user:{subject}"
+    return f"ip:{_client_key(request.client.host if request.client else None)}"
+
+
+def rate_limit(
+    limit: int | None = None,
+    window: int | None = None,
+    *,
+    key: RateLimitKey = "ip",
+    scope: str = "default",
+) -> Callable[[Request, Response], Awaitable[None]]:
+    """Build a FastAPI dependency that allows ``limit`` requests per ``window`` seconds to a route.
+
+    Use it on the routes that are expensive or that anyone can reach::
+
+        @router.post("/convert", dependencies=[Depends(rate_limit(30, 60, key="user", scope="convert"))])
+
+    - ``limit`` and ``window`` default to the settings ``rate_limit_default`` (``0``: no limit, which is the default)
+      and ``rate_limit_window_seconds``; a number given here wins for that route, and ``0`` switches the route off.
+    - ``key`` is what the requests are counted by: ``"ip"`` (the client address, an IPv6 address as its /64 network),
+      ``"user"`` (the user of a valid access token, the address when the request is anonymous) or a function
+      ``(request) -> str | None`` (sync or async; ``None`` falls back to the address).
+    - ``scope`` names the counter: routes with the same scope share one budget, different scopes are independent.
+
+    The count lives in the shared cache (:mod:`pachifast.cache`): the memory of the process by default, Redis when
+    ``cache_url`` is set, which several workers need to share one count. Every answer carries ``X-RateLimit-Limit``,
+    ``X-RateLimit-Remaining`` and ``X-RateLimit-Reset`` (seconds to the end of the window); past the limit the route
+    answers ``429 api.rate_limited`` with ``Retry-After``. Behind a reverse proxy run uvicorn with the proxy headers
+    (``pachifast serve`` does), or every client looks like the proxy.
+    """
+
+    async def check(request: Request, response: Response) -> None:
+        """Count the request and refuse it once the budget of the window is spent."""
+        settings = get_settings()
+        max_requests = settings.rate_limit_default if limit is None else limit
+        if max_requests <= 0:
+            return
+        seconds = window or settings.rate_limit_window_seconds
+        who = await _who(request, key)
+        now = time.time()
+        bucket = int(now // seconds)
+        count = await get_cache().incr(f"ratelimit:{scope}:{who}:{bucket}", seconds)
+        reset = max(1, int((bucket + 1) * seconds - now) + 1)
+        headers = {
+            "X-RateLimit-Limit": str(max_requests),
+            "X-RateLimit-Remaining": str(max(0, max_requests - count)),
+            "X-RateLimit-Reset": str(reset),
+        }
+        if count > max_requests:
+            raise api_error(
+                status.HTTP_429_TOO_MANY_REQUESTS, "api.rate_limited", headers={**headers, "Retry-After": str(reset)}
+            )
+        response.headers.update(headers)
+
+    return check

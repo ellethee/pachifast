@@ -7,7 +7,7 @@
 Framework open source per costruire servizi [FastAPI](https://fastapi.tiangolo.com/) con una struttura modulare, una CLI
 che genera progetti e moduli, autenticazione integrata con ruoli e permessi e migrazioni Alembic su più database.
 
-Versione: **<!-- version -->0.17.1<!-- /version -->** - Autore: **ilPachi** - Licenza: **MIT** - Stato: **alpha** (0.x: le versioni minori possono contenere modifiche incompatibili).
+Versione: **<!-- version -->0.18.0<!-- /version -->** - Autore: **ilPachi** - Licenza: **MIT** - Stato: **alpha** (0.x: le versioni minori possono contenere modifiche incompatibili).
 
 ## Cosa offre
 

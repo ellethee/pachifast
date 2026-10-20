@@ -3,7 +3,7 @@
 
 # Message codes
 
-Generated for pachifast **0.17.1**.
+Generated for pachifast **0.18.0**.
 
 Every error carries a stable `code` (and `params` for its `{placeholders}`); clients translate from the code. See [Errors and i18n](../guides/errors-and-i18n.md). Codes of your own modules are listed by `pachifast locale check`.
 
@@ -19,6 +19,7 @@ Every error carries a stable `code` (and `params` for its `{placeholders}`); cli
 | `admin.text.action.delete_selected` | Delete selected | Elimina selezionati |
 | `admin.text.deleted_selected` | {count} deleted | {count} eliminati |
 | `api.invalid_order_by` | Invalid field '{field}' for ordering. | Campo '{field}' non valido per l'ordinamento. |
+| `api.rate_limited` | Too many requests: try again later | Troppe richieste: riprova più tardi |
 | `auth.csrf_rejected` | Request rejected: it does not come from the application | Richiesta rifiutata: non proviene dall'applicazione |
 | `auth.invalid_credentials` | Invalid credentials | Credenziali non valide |
 | `auth.not_authenticated` | Not authenticated | Non autenticato |

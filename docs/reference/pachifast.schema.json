@@ -574,6 +574,25 @@
         }
       },
       "additionalProperties": false
+    },
+    "rate_limit": {
+      "description": "Defaults of the `rate_limit()` dependency for the routes that use it.",
+      "type": "object",
+      "properties": {
+        "default": {
+          "default": 0,
+          "minimum": 0,
+          "type": "integer",
+          "description": "Requests per window that `rate_limit()` allows a route with no limit of its own; 0 is none."
+        },
+        "window_seconds": {
+          "default": 60,
+          "minimum": 1,
+          "type": "integer",
+          "description": "Length of the window of `rate_limit()`, in seconds."
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

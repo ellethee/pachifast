@@ -17,6 +17,7 @@ SECTION_PREFIXES: Final[dict[str, str]] = {
     "mfa": "mfa_",
     "activity_log": "activity_log_",
     "events": "events_",
+    "rate_limit": "rate_limit_",
 }
 """Sections whose keys may omit the prefix of the field name (``cache.url`` -> ``cache_url``)."""
 
@@ -33,6 +34,7 @@ SECTION_DESCRIPTIONS: Final[dict[str, str]] = {
     "tables": "Names of the tables of the core (empty: table_prefix + default name).",
     "activity_log": "Activity log of the write requests.",
     "events": "Event WebSocket.",
+    "rate_limit": "Defaults of the `rate_limit()` dependency for the routes that use it.",
 }
 """Short description of each section, used by the JSON Schema and the docs."""
 
@@ -85,6 +87,7 @@ SECTIONS: Final[dict[str, SectionKeys]] = {
     ),
     "activity_log": _pairs("activity_log", "enabled exclude_paths retention_days table"),
     "events": _pairs("events", "broadcast_enabled allow_query_token public_types ticket_store"),
+    "rate_limit": _pairs("rate_limit", "default window_seconds"),
 }
 """Ordered mapping section -> ``(yaml_key, field_name)`` pairs. Field names are lower case."""
 

@@ -49,6 +49,8 @@ DESCRIPTIONS: dict[str, str] = {
     "refresh_cookie_samesite": "SameSite attribute of the refresh cookie: `lax` or `strict`.",
     "refresh_cookie_secure": "Secure attribute of the refresh cookie; empty: on when the request is https.",
     "refresh_allowed_origins": "Comma separated origins, besides the request host, allowed to use the refresh cookie.",
+    "rate_limit_default": "Requests per window that `rate_limit()` allows a route with no limit of its own; 0 is none.",
+    "rate_limit_window_seconds": "Length of the window of `rate_limit()`, in seconds.",
     "auth_rate_window_seconds": "Length of the window of auth_rate_limit, in seconds.",
     "docs_enabled": "Serve the Swagger UI (/docs, /docs/core) and the OpenAPI schemas; false removes them (404).",
     "swagger_noauth": "Let the Swagger UI (/docs) act as the first superuser without a token: development only.",

@@ -6,6 +6,12 @@ All notable changes to pachifast are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-10-20
+
+### Added
+
+- **`rate_limit()`**, a reusable FastAPI dependency (`pachifast.ratelimit`) that limits any route: `Depends(rate_limit(30, 60, key="user", scope="convert"))`. The key is the client address, the user of the access token or your own function; the count lives in the shared cache (Redis with `cache.url`). It answers `429 api.rate_limited` with `Retry-After` and sends `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset` (exposed to CORS). Nothing is limited unless a route gives a limit or `rate_limit.default` is set (new section `rate_limit` with `default` and `window_seconds`). See [Rate limit](https://pachifast.ilpachi.it/guides/rate-limit/).
+
 ## [0.17.1] - 2026-10-20
 
 ### Fixed

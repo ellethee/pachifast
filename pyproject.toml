@@ -1,6 +1,6 @@
 [project]
 name = "pachifast"
-version = "0.17.1"
+version = "0.18.0"
 description = "Modular FastAPI core and scaffolding CLI: projects, apps, auth, migrations."
 readme = "README.md"
 license = "MIT"

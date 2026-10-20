@@ -62,6 +62,7 @@ nav:
       - Errors and i18n: guides/errors-and-i18n.md
       - Events and activity log: guides/events.md
       - Cache: guides/cache.md
+      - Rate limit: guides/rate-limit.md
       - Database and migrations: guides/database-and-migrations.md
       - Operations: guides/operations.md
       - Deployment: guides/deployment.md
