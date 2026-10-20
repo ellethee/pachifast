@@ -6,6 +6,11 @@ All notable changes to pachifast are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `GET /api/admin/permissions/applications` answered 500 with current FastAPI versions (it read `.path` from every route, and included routers have none). It now lists the operations of the OpenAPI schema: `name` is the `operationId` and each entry has one method.
+- List endpoints answered 500 for a huge `page` (the `OFFSET` overflowed the database integer). `page` is limited to 1,000,000,000 and `pageSize` to 1,000,000: larger values are a 422.
+
 ## [0.16.0] - 2026-10-15
 
 ### Changed

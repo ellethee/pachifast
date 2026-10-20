@@ -3,7 +3,6 @@
 import uuid
 
 from fastapi import Request, Response, status
-from fastapi.routing import APIWebSocketRoute
 from sqlalchemy import select
 
 from pachifast.auth import cruds
@@ -37,20 +36,21 @@ EXCLUDE_ROUTES = [
 
 @router.get("/applications", summary="Get all application URLs")
 def get_all_urls_from_request(request: Request):
+    """List the documented ``/api`` operations (from the OpenAPI schema, so lazily included routers work too)."""
     url_list = [
         {
-            "path": route.path,
-            "name": route.name,
-            "methods": getattr(route, "methods", None),
-            "summary": getattr(route, "summary", None) or getattr(route, "description", None) or route.name,
-            "tags": getattr(route, "tags", None),
+            "path": path,
+            "name": op.get("operationId"),
+            "methods": [method.upper()],
+            "summary": op.get("summary") or op.get("description") or op.get("operationId"),
+            "tags": op.get("tags"),
         }
-        for route in request.app.routes
-        if route.path.startswith("/api")
-        and not isinstance(route, APIWebSocketRoute)
-        and not any(route.path.startswith(exc) for exc in EXCLUDE_ROUTES)
+        for path, operations in request.app.openapi().get("paths", {}).items()
+        if path.startswith("/api") and not any(path.startswith(exc) for exc in EXCLUDE_ROUTES)
+        for method, op in operations.items()
+        if method in {"get", "put", "post", "delete", "options", "head", "patch", "trace"}
     ]
-    url_list.sort(key=lambda x: x["path"])
+    url_list.sort(key=lambda x: (x["path"], x["methods"]))
     return url_list
 
 

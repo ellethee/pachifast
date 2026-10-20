@@ -54,8 +54,9 @@ class StandardResponse(BaseModel, Generic[T]):
 
 
 class PageParams(AliasedBaseModel):
-    page: int | None = Query(None, ge=1, description="Page number")
-    pageSize: int | None = Query(None, ge=0, description="Number of items per page")
+    # the upper bounds keep limit/offset inside a 64-bit integer (a larger OFFSET is a database error, not a 4xx)
+    page: int | None = Query(None, ge=1, le=1_000_000_000, description="Page number")
+    pageSize: int | None = Query(None, ge=0, le=1_000_000, description="Number of items per page")
     orderBy: str | None = Query(None, description="Field to order by")
     search: str | None = Query(None, description="Search term to filter the results")
 

@@ -1088,3 +1088,66 @@ async def test_sqlite_enforces_foreign_keys_and_waits_for_locks(tmp_path) -> Non
         assert (await conn.execute(text("PRAGMA busy_timeout"))).scalar() == 5000
         assert (await conn.execute(text("PRAGMA journal_mode"))).scalar() == "wal"
     await engine.dispose()
+
+
+# --- bad query parameters on the admin lists answer 4xx, never 500 --------------------
+
+ADMIN_LISTS = ["/api/admin/user", "/api/admin/activity-log"]
+
+
+@pytest.mark.parametrize("path", ADMIN_LISTS)
+@pytest.mark.parametrize(
+    "query",
+    [
+        "page=99999999999999999999",
+        "page=9223372036854775807&pageSize=200",
+        "page=999999999999&pageSize=200",
+        "pageSize=99999999999999999999",
+        "page=0",
+        "page=-1",
+        "pageSize=-1",
+        "page=abc",
+        "orderBy=",
+        "search=%00",
+    ],
+)
+def test_admin_lists_never_answer_500_on_odd_paging_parameters(env: Env, path: str, query: str) -> None:
+    client = env.build()
+    response = client.get(f"{path}?{query}", headers=env.token("boss"))
+    assert response.status_code < 500, (response.status_code, response.text[:200])
+
+
+def test_admin_applications_does_not_fail(env: Env) -> None:
+    client = env.build()
+    response = client.get("/api/admin/permissions/applications", headers=env.token("boss"))
+    assert response.status_code < 500, response.text[:300]
+
+
+ODD_VALUES = ["", "0", "-1", "abc", "99999999999999999999", "9223372036854775807", "%00", "a" * 3000, "1e400", "[]"]
+
+
+def test_no_get_route_answers_500_on_odd_query_or_path_values(env: Env) -> None:
+    """Fuzz every documented GET route with odd values for each parameter: the answer must be a 2xx/3xx/4xx."""
+    client = env.build()
+    headers = env.token("boss")
+    schema = client.get("/api/v1/openapi.json").json()
+    failures: list[str] = []
+    for path, operations in schema["paths"].items():
+        op = operations.get("get")
+        if not op or not path.startswith("/api") or "/health" in path:
+            continue
+        params = [p for p in op.get("parameters", []) if p["in"] in {"query", "path"}]
+        for value in ODD_VALUES:
+            for target in params or [None]:
+                url = path
+                query: dict[str, str] = {}
+                for p in params:
+                    v = value if p is target else "1"
+                    if p["in"] == "path":
+                        url = url.replace("{" + p["name"] + "}", v or "x")
+                    elif p is target:
+                        query[p["name"]] = v
+                response = client.get(url, params=query, headers=headers)
+                if response.status_code >= 500:
+                    failures.append(f"{response.status_code} GET {url} {query}")
+    assert not failures, "\n".join(failures[:20])
