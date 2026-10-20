@@ -73,8 +73,9 @@ SECTIONS: Final[dict[str, SectionKeys]] = {
     "auth": _pairs(
         "auth",
         "auth_database_url secret_key algorithm access_token_expire_minutes refresh_token_expire_days "
-        "refresh_token_rotation refresh_reuse_grace_seconds registration_enabled password_min_length "
-        "login_max_attempts login_lockout_minutes auth_rate_limit auth_rate_window_seconds",
+        "refresh_token_rotation refresh_reuse_grace_seconds refresh_mode refresh_cookie_name refresh_cookie_path "
+        "refresh_cookie_samesite refresh_cookie_secure refresh_allowed_origins registration_enabled "
+        "password_min_length login_max_attempts login_lockout_minutes auth_rate_limit auth_rate_window_seconds",
     ),
     "mfa": _pairs("mfa", "enabled encryption_key max_attempts otp_expire_minutes send_cooldown_seconds totp_issuer"),
     "tables": _pairs(

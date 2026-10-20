@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import Body, Depends, HTTPException, status
+from fastapi import Body, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +18,8 @@ from pachifast.utils.tasks import spawn
 
 from .cruds import create_user, get_user_by_id, get_user_by_username, normalize_username
 from .dependencies import CurrentUserDep
-from .schemas import MfaRequiredResponse, RefreshToken, TokenResponse, UserCreate, UserRead
+from .refresh_cookie import clear_refresh_cookie, resolve_refresh_token, set_refresh_cookie, token_body
+from .schemas import MfaRequiredResponse, RefreshBody, TokenResponse, UserCreate, UserRead
 from .security import (
     burn_hash_time,
     create_access_token,
@@ -47,6 +48,8 @@ async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: CoreSessionDep,
     settings: SettingsDep,
+    request: Request,
+    response: Response,
 ):
     from .security import authenticate_user, clear_login_failures, release_login_attempt
 
@@ -79,27 +82,31 @@ async def login_for_access_token(
     from pachifast.events import broadcast_event
 
     spawn(broadcast_event("login", {"user_id": str(user.id), "username": user.username}))
-    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+    set_refresh_cookie(response, request, refresh_token)
+    return token_body(access_token, refresh_token)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT, skip_envelope=True)
 async def logout(
     user: Annotated[UserRead, CurrentUserDep],
     session: CoreSessionDep,
-    payload: Annotated[RefreshToken | None, Body()] = None,
+    request: Request,
+    payload: Annotated[RefreshBody | None, Body()] = None,
 ) -> Response:
     """Log out: revokes the refresh tokens and emits the ``logout`` event (same schema as ``login``).
 
-    With ``{"refresh_token": ...}`` it revokes that token's login; without a body it revokes all the user's logins.
+    With ``{"refresh_token": ...}`` (or the refresh cookie) it revokes that token's login; without either it revokes
+    all the user's logins. The refresh cookie, if any, is deleted.
     The access token cannot be revoked (it is stateless): it stays valid until it expires, which is soon. The client
     must discard both tokens.
     """
     from pachifast.events import broadcast_event
 
     family = None
-    if payload is not None:
+    refresh_token = resolve_refresh_token(request, payload.refresh_token if payload else None)
+    if refresh_token:
         try:
-            token_payload = decode_refresh_payload(payload.refresh_token)
+            token_payload = decode_refresh_payload(refresh_token)
             if str(subject_to_user_id(token_payload)) == str(user.id):
                 family = token_payload.get("fam")
         except HTTPException:
@@ -115,18 +122,36 @@ async def logout(
     await get_broadcaster().close_user(user.id, UNAUTHORIZED_CLOSE_CODE, "Logged out")
     await signals.emit(signals.USER_LOGGED_OUT, user=user)
     await broadcast_event("logout", {"user_id": str(user.id), "username": user.username})
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    done = Response(status_code=status.HTTP_204_NO_CONTENT)
+    clear_refresh_cookie(done, request)
+    return done
 
 
-@router.post("/refresh-token", response_model=TokenResponse, skip_envelope=not core_settings.wrap_auth_token_response)
-async def refresh_access_token(payload: RefreshToken, session: CoreSessionDep):
+@router.post(
+    "/refresh-token",
+    response_model=TokenResponse,
+    response_model_exclude_unset=True,
+    skip_envelope=not core_settings.wrap_auth_token_response,
+)
+async def refresh_access_token(
+    session: CoreSessionDep,
+    request: Request,
+    response: Response,
+    payload: Annotated[RefreshBody | None, Body()] = None,
+):
     """Issues a new access token from a valid refresh token (existing, active user).
 
     Con ``refresh_token_rotation`` (default) also returns a new refresh token and the presented one is no
     longer valid; presenting it again revokes the whole login.
+
+    The refresh token is read from the body or, with ``refresh_mode`` ``cookie``/``both``, from the cookie (which needs
+    the ``X-Pachi-Auth: refresh`` header); the new one is set as the cookie again.
     """
+    refresh_token = resolve_refresh_token(request, payload.refresh_token if payload else None)
     try:
-        token_payload = decode_refresh_payload(payload.refresh_token)
+        if not refresh_token:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+        token_payload = decode_refresh_payload(refresh_token)
         user_id = subject_to_user_id(token_payload)
     except HTTPException:
         raise api_error(
@@ -143,7 +168,8 @@ async def refresh_access_token(payload: RefreshToken, session: CoreSessionDep):
             status.HTTP_401_UNAUTHORIZED, "auth.refresh_token_revoked", loc=("body", "refresh_token")
         ) from None
     new_refresh = await rotate_refresh_token(session, token_payload, user.id)
-    return TokenResponse(access_token=create_access_token(str(user.id)), refresh_token=new_refresh)
+    set_refresh_cookie(response, request, new_refresh)
+    return token_body(create_access_token(str(user.id)), new_refresh)
 
 
 @router.post(

@@ -87,6 +87,26 @@ A refresh token that has no record is refused. The endpoint answers `401` with o
 | `auth.refresh_user_invalid` | The user no longer exists or is inactive. |
 | `auth.refresh_token_revoked` | Logged out, password changed, user deactivated, token already used, or not issued by this server. |
 
+### Refresh token in an HttpOnly cookie
+
+By default the refresh token travels in the JSON, so a browser client has to keep it where JavaScript can read it (a cross-site scripting hole then exposes a login that lasts days). With `auth.refresh_mode` the refresh token can live in a cookie the page cannot read:
+
+| `refresh_mode` | Login, MFA verify and refresh | `refresh-token` and `logout` read |
+| --- | --- | --- |
+| `body` (default) | `refresh_token` in the JSON, no cookie. | the body |
+| `cookie` | `Set-Cookie` with the refresh token; **no** `refresh_token` in the JSON. | the cookie, or the body |
+| `both` | cookie **and** `refresh_token` in the JSON. | the cookie, or the body |
+
+The cookie is `HttpOnly`, `SameSite=Lax`, lives `refresh_token_expire_days` and is limited to `Path=/api/auth`. `Secure` is on when the request is https (behind a proxy start uvicorn with `--proxy-headers`, or set `refresh_cookie_secure`). Settings: `refresh_cookie_name` (default `pachifast_refresh`), `refresh_cookie_path`, `refresh_cookie_samesite` (`lax` or `strict`), `refresh_cookie_secure`, `refresh_allowed_origins`.
+
+A cookie is sent by the browser without the page asking, so a request that relies on it must prove it comes from your application (**CSRF defence**): it needs the header `X-Pachi-Auth: refresh` (a custom header cannot be sent cross-site without a CORS preflight), and its `Origin`, when there is one, must be the host of the request or one of `refresh_allowed_origins`. Otherwise the answer is `403` with code `auth.csrf_rejected`. A token given in the body needs no proof and works in every mode.
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/refresh-token -b cookies.txt -c cookies.txt -H "X-Pachi-Auth: refresh"
+```
+
+The client must send the requests with credentials (`fetch(..., { credentials: "include" })`) and keep the access token in memory only; after a page reload it asks `refresh-token` once to get a new one. Rotation, reuse detection and the grace window are the same as for the body. Logout deletes the cookie and revokes the login of the token it carried. If the frontend is on another origin than the API, list it in `cors_origins` and in `refresh_allowed_origins`; with the same origin (a dev proxy, or the API serving the frontend) nothing more is needed. The WebSocket keeps using its one-time ticket.
+
 ### Log out: `POST /auth/logout`
 
 Requires a valid access token and answers `204 No Content`. With a body `{"refresh_token": "<jwt>"}` it revokes the login of that token; **without a body it revokes every login of the user**. A token that is not the caller's own is ignored (and the call falls back to ending all the caller's logins). The access token is stateless and cannot be revoked: it stays valid until it expires (`ACCESS_TOKEN_EXPIRE_MINUTES`, short), so the client must still discard both tokens. The endpoint also **notifies** the exit: it emits the `logout` WebSocket event (same payload as `login`). See [Events](events.md) for who receives it and how to make `login` and `logout` public.

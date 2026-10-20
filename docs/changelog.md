@@ -8,6 +8,10 @@ All notable changes to pachifast are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Refresh token in an HttpOnly cookie** (`auth.refresh_mode`: `body` by default, `cookie` or `both`). In the cookie modes login, MFA verify and refresh set the cookie, `refresh-token` and `logout` read it and logout deletes it. A request that relies on the cookie needs the header `X-Pachi-Auth: refresh` and an allowed `Origin`, otherwise it is a 403 `auth.csrf_rejected`. New settings: `refresh_cookie_name`, `refresh_cookie_path`, `refresh_cookie_samesite`, `refresh_cookie_secure`, `refresh_allowed_origins`. The default does not change anything for existing apps, except that `POST /auth/refresh-token` with an empty body `{}` is now a 401 (no token) instead of a 422. See [Authentication](https://pachifast.ilpachi.it/guides/authentication/).
+
 ## [0.16.1] - 2026-10-20
 
 ### Fixed

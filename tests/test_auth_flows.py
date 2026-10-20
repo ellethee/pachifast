@@ -892,3 +892,128 @@ def test_an_unknown_user_and_a_disabled_user_cannot_log_in(env: Env) -> None:
     assert login(client, "nobody").status_code == 401
     change_user(env, "ann", is_active=False)
     assert login(client, "ann").status_code == 401
+
+
+# --- refresh token in an HttpOnly cookie (refresh_mode) ---------------------------------
+
+CSRF = {"X-Pachi-Auth": "refresh"}
+
+
+def _cookie(response) -> str:
+    """The Set-Cookie header of the refresh cookie."""
+    return next((v for v in response.headers.get_list("set-cookie") if v.startswith("pachifast_refresh=")), "")
+
+
+def test_default_mode_sets_no_cookie_and_keeps_the_body(env: Env) -> None:
+    client = env.build()
+    response = login(client, "ann")
+    assert "refresh_token" in response.json() and not _cookie(response)
+
+
+def test_cookie_mode_login_sets_an_httponly_cookie_and_hides_the_token(env: Env) -> None:
+    client = env.build(refresh_mode="cookie")
+    response = login(client, "ann")
+    assert response.status_code == 200, response.text
+    assert set(response.json()) == {"access_token", "token_type"}
+    cookie = _cookie(response)
+    assert (
+        "HttpOnly" in cookie and "Path=/api/auth" in cookie and "SameSite=lax" in cookie and "Max-Age=604800" in cookie
+    )
+    assert "Secure" not in cookie  # http test client
+
+
+def test_both_mode_gives_the_token_in_the_body_and_in_the_cookie(env: Env) -> None:
+    client = env.build(refresh_mode="both")
+    response = login(client, "ann")
+    assert response.json()["refresh_token"] and _cookie(response)
+
+
+def test_cookie_refresh_rotates_and_needs_the_csrf_header(env: Env) -> None:
+    client = env.build(refresh_mode="cookie")
+    login(client, "ann")
+    refused = client.post("/api/auth/refresh-token")
+    assert refused.status_code == 403 and code_of(refused) == "auth.csrf_rejected"
+    first = client.cookies.get("pachifast_refresh")
+    renewed = client.post("/api/auth/refresh-token", headers=CSRF)
+    assert renewed.status_code == 200, renewed.text
+    assert set(renewed.json()) == {"access_token", "token_type"}
+    assert _cookie(renewed) and client.cookies.get("pachifast_refresh") != first
+    assert client.get("/api/auth/user", headers=bearer(renewed.json()["access_token"])).status_code == 200
+
+
+def test_cookie_refresh_refuses_a_foreign_origin(env: Env) -> None:
+    client = env.build(refresh_mode="cookie")
+    login(client, "ann")
+    foreign = client.post("/api/auth/refresh-token", headers={**CSRF, "Origin": "https://evil.example"})
+    assert foreign.status_code == 403
+    same = client.post("/api/auth/refresh-token", headers={**CSRF, "Origin": "http://testserver"})
+    assert same.status_code == 200
+
+
+def test_cookie_refresh_accepts_an_allowed_origin(env: Env) -> None:
+    client = env.build(refresh_mode="cookie", refresh_allowed_origins="https://app.example.com")
+    login(client, "ann")
+    response = client.post("/api/auth/refresh-token", headers={**CSRF, "Origin": "https://app.example.com/"})
+    assert response.status_code == 200
+
+
+def test_body_token_still_works_in_cookie_mode_without_the_header(env: Env) -> None:
+    client = env.build(refresh_mode="both")
+    token = login(client, "ann").json()["refresh_token"]
+    client.cookies.clear()
+    assert refresh(client, token).status_code == 200
+
+
+def test_cookie_refresh_without_cookie_or_body_is_a_401(env: Env) -> None:
+    client = env.build(refresh_mode="cookie")
+    response = client.post("/api/auth/refresh-token", headers=CSRF)
+    assert response.status_code == 401 and code_of(response) == "auth.refresh_token_invalid"
+
+
+def test_cookie_reuse_after_the_grace_window_revokes_the_login(env: Env) -> None:
+    client = env.build(refresh_mode="cookie", refresh_reuse_grace_seconds="0")
+    login(client, "ann")
+    spent = client.cookies.get("pachifast_refresh")
+    assert client.post("/api/auth/refresh-token", headers=CSRF).status_code == 200
+    newest = client.cookies.get("pachifast_refresh")
+    client.cookies.clear()
+    assert refresh(client, spent).status_code == 401  # reuse
+    client.cookies.set("pachifast_refresh", newest)
+    assert client.post("/api/auth/refresh-token", headers=CSRF).status_code == 401  # the family is gone
+
+
+def test_two_quick_cookie_refreshes_keep_the_login(env: Env) -> None:
+    client = env.build(refresh_mode="cookie")
+    login(client, "ann")
+    spent = client.cookies.get("pachifast_refresh")
+    assert client.post("/api/auth/refresh-token", headers=CSRF).status_code == 200
+    newest = client.cookies.get("pachifast_refresh")
+    client.cookies.set("pachifast_refresh", spent)  # the other tab still had the old cookie
+    assert client.post("/api/auth/refresh-token", headers=CSRF).status_code == 401
+    client.cookies.set("pachifast_refresh", newest)  # inside the grace window the login survives
+    assert client.post("/api/auth/refresh-token", headers=CSRF).status_code == 200
+
+
+def test_cookie_logout_revokes_the_login_and_clears_the_cookie(env: Env) -> None:
+    client = env.build(refresh_mode="cookie")
+    access = login(client, "ann").json()["access_token"]
+    cookie = client.cookies.get("pachifast_refresh")
+    assert client.post("/api/auth/logout", headers=bearer(access)).status_code == 403  # no CSRF header
+    done = client.post("/api/auth/logout", headers={**bearer(access), **CSRF})
+    assert done.status_code == 204
+    assert 'pachifast_refresh=""' in _cookie(done) or "Max-Age=0" in _cookie(done)
+    client.cookies.set("pachifast_refresh", cookie)
+    assert client.post("/api/auth/refresh-token", headers=CSRF).status_code == 401
+
+
+def test_cookie_secure_follows_the_setting(env: Env) -> None:
+    client = env.build(refresh_mode="cookie", refresh_cookie_secure="true", refresh_cookie_samesite="strict")
+    cookie = _cookie(login(client, "ann"))
+    assert "Secure" in cookie and "SameSite=strict" in cookie
+
+
+def test_cookie_refresh_and_logout_accept_an_empty_json_body(env: Env) -> None:
+    client = env.build(refresh_mode="cookie")
+    access = login(client, "ann").json()["access_token"]
+    assert client.post("/api/auth/refresh-token", json={}, headers=CSRF).status_code == 200
+    assert client.post("/api/auth/logout", json={}, headers={**bearer(access), **CSRF}).status_code == 204

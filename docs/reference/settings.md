@@ -58,6 +58,12 @@ Every setting can be given in a section of `pachifast.yaml` (`section.key`, case
 | `refresh_token_expire_days` | `auth.refresh_token_expire_days` | `PACHIFAST_REFRESH_TOKEN_EXPIRE_DAYS` | integer | `7` | Lifetime of a refresh token, in days. |
 | `refresh_token_rotation` | `auth.refresh_token_rotation` | `PACHIFAST_REFRESH_TOKEN_ROTATION` | boolean | `true` | Every refresh issues a new, single-use refresh token; a reused one revokes the login. |
 | `refresh_reuse_grace_seconds` | `auth.refresh_reuse_grace_seconds` | `PACHIFAST_REFRESH_REUSE_GRACE_SECONDS` | integer | `10` | Grace seconds in which a reused refresh token is refused but the login is kept. |
+| `refresh_mode` | `auth.refresh_mode` | `PACHIFAST_REFRESH_MODE` | `body` \| `cookie` \| `both` | `body` | Where the refresh token travels: `body` (JSON, default), `cookie` (HttpOnly cookie) or `both`. |
+| `refresh_cookie_name` | `auth.refresh_cookie_name` | `PACHIFAST_REFRESH_COOKIE_NAME` | string | `pachifast_refresh` | Name of the refresh cookie. |
+| `refresh_cookie_path` | `auth.refresh_cookie_path` | `PACHIFAST_REFRESH_COOKIE_PATH` | string | `/api/auth` | Path of the refresh cookie; keep it on the auth routes. |
+| `refresh_cookie_samesite` | `auth.refresh_cookie_samesite` | `PACHIFAST_REFRESH_COOKIE_SAMESITE` | `lax` \| `strict` | `lax` | SameSite attribute of the refresh cookie: `lax` or `strict`. |
+| `refresh_cookie_secure` | `auth.refresh_cookie_secure` | `PACHIFAST_REFRESH_COOKIE_SECURE` | list or comma-separated string |  | Secure attribute of the refresh cookie; empty: on when the request is https. |
+| `refresh_allowed_origins` | `auth.refresh_allowed_origins` | `PACHIFAST_REFRESH_ALLOWED_ORIGINS` | string |  | Comma separated origins, besides the request host, allowed to use the refresh cookie. |
 | `registration_enabled` | `auth.registration_enabled` | `PACHIFAST_REGISTRATION_ENABLED` | boolean | `false` | Allow POST /auth/register (anyone can create an account); false answers 403. |
 | `password_min_length` | `auth.password_min_length` | `PACHIFAST_PASSWORD_MIN_LENGTH` | integer | `12` | Minimum length of a password. |
 | `login_max_attempts` | `auth.login_max_attempts` | `PACHIFAST_LOGIN_MAX_ATTEMPTS` | integer | `5` | Failed logins before the account is locked. |

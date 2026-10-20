@@ -19,6 +19,7 @@ Every error carries a stable `code` (and `params` for its `{placeholders}`); cli
 | `admin.text.action.delete_selected` | Delete selected | Elimina selezionati |
 | `admin.text.deleted_selected` | {count} deleted | {count} eliminati |
 | `api.invalid_order_by` | Invalid field '{field}' for ordering. | Campo '{field}' non valido per l'ordinamento. |
+| `auth.csrf_rejected` | Request rejected: it does not come from the application | Richiesta rifiutata: non proviene dall'applicazione |
 | `auth.invalid_credentials` | Invalid credentials | Credenziali non valide |
 | `auth.not_authenticated` | Not authenticated | Non autenticato |
 | `auth.password_incorrect` | The current password is incorrect | La password attuale non è corretta |

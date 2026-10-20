@@ -95,7 +95,7 @@ def test_string_and_list_details_of_custom_http_exceptions(app_env) -> None:
 
 
 def test_validation_errors_keep_their_uniform_list(app_env) -> None:
-    response = TestClient(app_env[0]).post("/api/auth/refresh-token", json={})
+    response = TestClient(app_env[0]).post("/api/auth/refresh-token", json={"refresh_token": 5})
     assert response.status_code == 422
     assert _assert_uniform(response.json())[0]["loc"] == ["body", "refresh_token"]
 

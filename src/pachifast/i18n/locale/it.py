@@ -7,6 +7,7 @@ MESSAGES: dict[str, str] = {
     "auth.token_wrong_type": "Tipo di token non valido.",
     "auth.token_no_subject": "Token privo di soggetto.",
     "auth.token_revoked": "Token revocato: la password è stata modificata.",
+    "auth.csrf_rejected": "Richiesta rifiutata: non proviene dall'applicazione",
     "auth.refresh_token_invalid": "Refresh token non valido o scaduto",
     "auth.refresh_token_revoked": "Refresh token revocato (logout, cambio password o riuso)",
     "auth.refresh_user_invalid": "Utente non valido o disabilitato",

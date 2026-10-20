@@ -333,6 +333,52 @@
           "type": "integer",
           "description": "Grace seconds in which a reused refresh token is refused but the login is kept."
         },
+        "refresh_mode": {
+          "default": "body",
+          "enum": [
+            "body",
+            "cookie",
+            "both"
+          ],
+          "type": "string",
+          "description": "Where the refresh token travels: `body` (JSON, default), `cookie` (HttpOnly cookie) or `both`."
+        },
+        "refresh_cookie_name": {
+          "default": "pachifast_refresh",
+          "type": "string",
+          "description": "Name of the refresh cookie."
+        },
+        "refresh_cookie_path": {
+          "default": "/api/auth",
+          "type": "string",
+          "description": "Path of the refresh cookie; keep it on the auth routes."
+        },
+        "refresh_cookie_samesite": {
+          "default": "lax",
+          "enum": [
+            "lax",
+            "strict"
+          ],
+          "type": "string",
+          "description": "SameSite attribute of the refresh cookie: `lax` or `strict`."
+        },
+        "refresh_cookie_secure": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Secure attribute of the refresh cookie; empty: on when the request is https."
+        },
+        "refresh_allowed_origins": {
+          "default": "",
+          "type": "string",
+          "description": "Comma separated origins, besides the request host, allowed to use the refresh cookie."
+        },
         "registration_enabled": {
           "default": false,
           "type": "boolean",

@@ -675,3 +675,13 @@ def test_the_sms_setup_normalizes_the_number(env: Env, recorder: type[Recorder])
     assert response.status_code == 200
     _wait_for_delivery(recorder)
     assert recorder.sms[0][0] == "+390000001234"
+
+
+def test_verify_sets_the_refresh_cookie_in_cookie_mode(env: Env) -> None:
+    client = env.build(refresh_mode="cookie")
+    secret, _ = _enrol_totp(client, env.token("ann"))
+    first = _login(client, "ann")
+    done = _verify(client, first.json()["mfa_token"], _next_code(secret))
+    assert done.status_code == 200, done.text
+    assert set(done.json()) == {"access_token", "token_type"}
+    assert "HttpOnly" in done.headers["set-cookie"] and client.cookies.get("pachifast_refresh")

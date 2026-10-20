@@ -3,7 +3,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
@@ -343,8 +343,10 @@ async def mfa_verify(
     payload: MfaVerifyRequest,
     session: CoreSessionDep,
     settings: SettingsDep,
+    request: Request,
 ):
     from pachifast.auth.cruds import get_user_by_id
+    from pachifast.auth.refresh_cookie import set_refresh_cookie, token_body
     from pachifast.auth.security import (
         clear_login_failures,
         create_access_token,
@@ -432,4 +434,6 @@ async def mfa_verify(
     await record_login(session, user)
     access_token = create_access_token(str(user.id))
     refresh_token = await issue_refresh_token(session, user.id)
-    return JSONResponse(content={"access_token": access_token, "token_type": "bearer", "refresh_token": refresh_token})
+    response = JSONResponse(content=token_body(access_token, refresh_token))
+    set_refresh_cookie(response, request, refresh_token)
+    return response

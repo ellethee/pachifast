@@ -6,13 +6,13 @@ from datetime import timedelta
 
 import jwt
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from pwdlib import PasswordHash
 from pwdlib.hashers.argon2 import Argon2Hasher
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from pachifast.auth import cruds, security
-from pachifast.auth.schemas import RefreshToken, UserCreate
+from pachifast.auth.schemas import RefreshBody, UserCreate
 from pachifast.config import PachifastSettings, get_settings
 from pachifast.database.utils import utcnow
 
@@ -115,25 +115,38 @@ def test_invalid_tokens_are_rejected() -> None:
         assert exc.value.status_code == 401
 
 
+def _request():
+    """A bare request for calling a route handler directly."""
+    from starlette.requests import Request
+
+    return Request({"type": "http", "headers": [], "scheme": "http", "server": ("test", 80)})
+
+
 def test_refresh_endpoint_rejects_access_token_and_inactive_user(run) -> None:
     from pachifast.auth.root import refresh_access_token
 
     async def scenario(session: AsyncSession) -> None:
         user = await _make_user(session)
         issued = await security.issue_refresh_token(session, user.id)
-        good = await refresh_access_token(RefreshToken(refresh_token=issued), session)
-        assert security.decode_access_token(good.access_token) == user.id
+        good = await refresh_access_token(session, _request(), Response(), RefreshBody(refresh_token=issued))
+        assert security.decode_access_token(good["access_token"]) == user.id
 
         with pytest.raises(HTTPException):
-            await refresh_access_token(RefreshToken(refresh_token=security.create_access_token(user.id)), session)
+            await refresh_access_token(
+                session, _request(), Response(), RefreshBody(refresh_token=security.create_access_token(user.id))
+            )
 
         user.is_active = False
         await session.commit()
         with pytest.raises(HTTPException):
-            await refresh_access_token(RefreshToken(refresh_token=good.refresh_token), session)
+            await refresh_access_token(
+                session, _request(), Response(), RefreshBody(refresh_token=good["refresh_token"])
+            )
 
         with pytest.raises(HTTPException):
-            await refresh_access_token(RefreshToken(refresh_token=security.create_refresh_token(uuid.uuid4())), session)
+            await refresh_access_token(
+                session, _request(), Response(), RefreshBody(refresh_token=security.create_refresh_token(uuid.uuid4()))
+            )
 
     run(scenario)
 

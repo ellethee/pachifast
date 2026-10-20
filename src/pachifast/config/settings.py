@@ -103,6 +103,15 @@ class PachifastSettings(ServerSettings):
     # seconds after a rotation in which presenting the spent token again is refused but does not revoke the login
     # (two tabs refreshing together); 0 revokes at the first reuse
     refresh_reuse_grace_seconds: int = Field(default=10, ge=0)
+    # "body": the refresh token is in the JSON (default); "cookie": in an HttpOnly cookie only; "both": in both
+    refresh_mode: Literal["body", "cookie", "both"] = "body"
+    refresh_cookie_name: str = "pachifast_refresh"
+    refresh_cookie_path: str = "/api/auth"
+    refresh_cookie_samesite: Literal["lax", "strict"] = "lax"
+    # None: Secure when the request is https (behind a proxy run uvicorn with --proxy-headers); True/False forces it
+    refresh_cookie_secure: bool | None = None
+    # origins besides the host of the request that may use the cookie, comma separated
+    refresh_allowed_origins: str = ""
     registration_enabled: bool = False
     AUTH_DATABASE_URL: str = ""
     auto_create_auth_schema: bool = False

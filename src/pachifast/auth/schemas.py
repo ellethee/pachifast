@@ -25,6 +25,12 @@ class RefreshToken(BaseModel):
     refresh_token: str
 
 
+class RefreshBody(BaseModel):
+    """Body of ``/refresh-token`` and ``/logout``: the token is optional because it may come from the cookie."""
+
+    refresh_token: str | None = None
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
