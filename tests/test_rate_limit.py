@@ -141,3 +141,28 @@ def test_the_rate_limit_section_of_the_yaml_maps_to_the_settings(tmp_path, monke
     locations = field_locations()
     assert locations["rate_limit_default"] == "rate_limit.default"
     assert locations["rate_limit_window_seconds"] == "rate_limit.window_seconds"
+
+
+def test_default_limits_the_route_when_nobody_sets_the_setting(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("PACHIFAST_RATE_LIMIT_DEFAULT", raising=False)
+    get_settings.cache_clear()
+    client = _app(rate_limit(default=2, scope="t-app-default"))
+    assert [client.get("/x").status_code for _ in range(3)] == [200, 200, 429]
+
+
+def test_the_setting_wins_over_default_and_zero_switches_it_off(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PACHIFAST_RATE_LIMIT_DEFAULT", "0")
+    get_settings.cache_clear()
+    off = _app(rate_limit(default=1, scope="t-default-off"))
+    assert all(off.get("/x").status_code == 200 for _ in range(3))
+    monkeypatch.setenv("PACHIFAST_RATE_LIMIT_DEFAULT", "3")
+    get_settings.cache_clear()
+    three = _app(rate_limit(default=1, scope="t-default-three"))
+    assert [three.get("/x").status_code for _ in range(4)] == [200, 200, 200, 429]
+
+
+def test_a_limit_given_to_the_route_wins_over_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("PACHIFAST_RATE_LIMIT_DEFAULT", raising=False)
+    get_settings.cache_clear()
+    client = _app(rate_limit(1, 60, default=5, scope="t-limit-over-default"))
+    assert [client.get("/x").status_code for _ in range(2)] == [200, 429]

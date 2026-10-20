@@ -7,7 +7,7 @@ from pachifast.scaffold.metadata import ProjectMetadata, requirement_name
 
 PACKAGE_NAME = "pachifast"
 # Raise it when the generated code needs a newer pachifast (0.7: registration closed by default).
-PACKAGE_MIN_VERSION = "0.18.0"
+PACKAGE_MIN_VERSION = "0.19.0"
 
 
 def _toml_string(value: str) -> str:

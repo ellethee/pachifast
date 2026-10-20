@@ -8,7 +8,7 @@ An open-source framework for building [FastAPI](https://fastapi.tiangolo.com/) s
 that scaffolds projects and modules, built-in authentication with roles and permissions, and multi-database Alembic
 migrations.
 
-Version: **<!-- version -->0.18.0<!-- /version -->** - Author: **ilPachi** - License: **MIT** - Status: **alpha** (0.x: minor releases may contain breaking changes).
+Version: **<!-- version -->0.19.0<!-- /version -->** - Author: **ilPachi** - License: **MIT** - Status: **alpha** (0.x: minor releases may contain breaking changes).
 
 ## Features
 

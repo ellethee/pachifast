@@ -102,6 +102,7 @@ def rate_limit(
     *,
     key: RateLimitKey = "ip",
     scope: str = "default",
+    default: int = 0,
 ) -> Callable[[Request, Response], Awaitable[None]]:
     """Build a FastAPI dependency that allows ``limit`` requests per ``window`` seconds to a route.
 
@@ -111,6 +112,9 @@ def rate_limit(
 
     - ``limit`` and ``window`` default to the settings ``rate_limit_default`` (``0``: no limit, which is the default)
       and ``rate_limit_window_seconds``; a number given here wins for that route, and ``0`` switches the route off.
+    - ``default`` is the limit of an app that wants the route limited without anyone setting ``rate_limit_default``:
+      it applies only when neither ``limit`` nor the setting (environment, ``.env``, ``pachifast.yaml``) gives one,
+      so an operator can still switch the limit off with ``rate_limit.default: 0``.
     - ``key`` is what the requests are counted by: ``"ip"`` (the client address, an IPv6 address as its /64 network),
       ``"user"`` (the user of a valid access token, the address when the request is anonymous) or a function
       ``(request) -> str | None`` (sync or async; ``None`` falls back to the address).
@@ -126,7 +130,12 @@ def rate_limit(
     async def check(request: Request, response: Response) -> None:
         """Count the request and refuse it once the budget of the window is spent."""
         settings = get_settings()
-        max_requests = settings.rate_limit_default if limit is None else limit
+        if limit is not None:
+            max_requests = limit
+        elif "rate_limit_default" in settings.model_fields_set:
+            max_requests = settings.rate_limit_default
+        else:
+            max_requests = default
         if max_requests <= 0:
             return
         seconds = window or settings.rate_limit_window_seconds

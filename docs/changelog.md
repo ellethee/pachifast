@@ -8,6 +8,16 @@ All notable changes to pachifast are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-10-20
+
+### Added
+
+- `rate_limit(default=...)`: the limit of an app that wants a route limited without anyone setting `rate_limit.default`. It applies only when neither the route's `limit` nor the setting gives one, so `rate_limit.default: 0` still switches the limit off.
+
+### Changed
+
+- The [rate limit guide](https://pachifast.ilpachi.it/guides/rate-limit/) now says what is counted: requests refused by the router's authentication are not, `key="user"` does not look at the database, and `auth.rate_limited` and `api.rate_limited` are different codes.
+
 ## [0.18.0] - 2026-10-20
 
 ### Added
